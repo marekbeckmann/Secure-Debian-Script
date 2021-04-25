@@ -2,39 +2,39 @@ What does this script do
 
 This script will install the following programs:
 
-Google 2-FA authentication
+*Google 2-FA authentication
 
-UFW Firewall
+*UFW Firewall
 
-Fail2Ban Intrusion Detection
+*Fail2Ban Intrusion Detection
 
-PSAD Intrusion Prevention
+*PSAD Intrusion Prevention
 
-Clamav Anti-Virus
+*Clamav Anti-Virus
 
-Chrootkint Chrootkit Detection
+*Chrootkint Chrootkit Detection
 
-Password Quality
+*Password Quality
 
 This Script will configure the following settings/configurations
 
-Secure PROC in /etc/fstab
+*Secure PROC in /etc/fstab
 
-Configure password quality in /etc/pam.d/common-password
+*Configure password quality in /etc/pam.d/common-password
 
-Configure PSAD in /etc/psad/psad.conf
+*Configure PSAD in /etc/psad/psad.conf
 
-Configure fail2ban and add fail2ban jail in /etc/fail2ban/jail.d/ssh.local
+*Configure fail2ban and add fail2ban jail in /etc/fail2ban/jail.d/ssh.local
 
-Configure SSH config in /etc/ssh/sshd_config
+*Configure SSH config in /etc/ssh/sshd_config
 
-Configure SSHD Pam in /etc/pam.d/sshd
+*Configure SSHD Pam in /etc/pam.d/sshd
 
-Configure Password hashing rounds in /etc/login.defs
+*Configure Password hashing rounds in /etc/login.defs
 
-Configure Core Dump in /etc/security/limits.conf and /etc/sysctl.conf
+*Configure Core Dump in /etc/security/limits.conf and /etc/sysctl.conf
 
-Add disclaimers to /etc/ssh/banner, /etc/issue and /etc/issue.net
+*Add disclaimers to /etc/ssh/banner, /etc/issue and /etc/issue.net
 
 This script is not perfect, and it may not successfully run on any Debian-based distribution. As of now, I only tested it on Debian 10 (Buster) and Ubuntu 18.04 LTS. Furthermore, make sure, that you keep a root session open, before executing this script. After the execution, follow the post-execution instructions.
 
