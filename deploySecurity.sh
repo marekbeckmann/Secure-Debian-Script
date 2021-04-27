@@ -124,16 +124,19 @@ EOT
         fail2ban-client add sshd
         clear
 
-        printf"
-Summary: \n
-SSH-Port: ${sshPort} \n
-Run the following commands to conclude setup: \n
-\tgoogle-authenticator -t -d -f -r 3 -R 30 -W \n
-\tsudo ufw enable \n
-The Script has finished! To apply all changes, you have to reboot your system \n
-Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system \n
+        __summary="
+Summary: 
+SSH-Port: ${sshPort} 
+Run the following commands to conclude setup: 
+
+    google-authenticator -t -d -f -r 3 -R 30 -W 
+    sudo ufw enable 
+
+The Script has finished! To apply all changes, you have to reboot your system 
+Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
 Thank you for using my script.
 "
+echo "$__summary"
     fi
 
 else
