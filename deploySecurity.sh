@@ -124,7 +124,7 @@ EOT
         fail2ban-client add sshd
         clear
 
-        printf'
+        printf"
 Summary: \n
 SSH-Port: ${sshPort} \n
 Run the following commands to conclude setup: \n
@@ -133,7 +133,7 @@ Run the following commands to conclude setup: \n
 The Script has finished! To apply all changes, you have to reboot your system \n
 Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system \n
 Thank you for using my script.
-'
+"
     fi
 
 else
