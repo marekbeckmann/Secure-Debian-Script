@@ -1,0 +1,2 @@
+auth required pam_unix.so try_first_pass
+auth required pam_google_authenticator.so echo_verification_code

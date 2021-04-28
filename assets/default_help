@@ -1,0 +1,15 @@
+This Script will install and configure some security options on your server! 
+These Changes will be made: 
+ -Secure SSHD Configuration 
+ -Google 2-Factor Authentication 
+ -Password Policy 
+ -UFW Firewall 
+ -Freshclam Anti-Virus 
+ -PSAD Intrusion Prevention 
+ -Fail2Ban Intrusion Detection 
+ -Chrootkit Detection 
+ -Secure PROC 
+You may want to use the following options, when running this Script: 
+ -u <userName> To add an allowed user to ssh config 
+ -p to harden the firewall
+This Script was created by Marek Beckmann and is documented on https://docs.marekbeckmann.de/books/automated-security-script 

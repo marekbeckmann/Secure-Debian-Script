@@ -1,0 +1,4 @@
+
+-A INPUT -j LOG --log-tcp-options --log-prefix "[IPTABLES] "
+-A FORWARD -j LOG --log-tcp-options --log-prefix "[IPTABLES] "
+COMMIT
