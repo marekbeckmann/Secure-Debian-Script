@@ -98,6 +98,22 @@ function_fail2ban() {
 
 }
 
+function_summary() {
+    clear
+    summary="
+        Summary: 
+        SSH-Port: ${sshPort} 
+        Run the following commands to conclude setup: 
+
+            google-authenticator -t -d -f -r 3 -R 30 -W 
+            sudo ufw enable 
+
+        The Script has finished! To apply all changes, you have to reboot your system 
+        Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
+        Thank you for using my script."
+    echo "$summary"
+}
+
 function_init() {
     if [ "$(whoami)" = "root" ]; then
         if [[ $1 = "-h" ]]; then
@@ -113,7 +129,7 @@ function_init() {
             function_systemhardening
             function_ufwrules "$1" "$2" "$3"
             function_fail2ban
-
+            function_summary
         fi
 
     else
