@@ -99,6 +99,11 @@ function_fail2ban() {
 }
 
 function_summary() {
+    systemctl restart sshd.service
+    systemctl restart psad.service
+    systemctl restart fail2ban.service
+    ufw reload
+
     clear
     summary="
         Summary: 
