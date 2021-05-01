@@ -18,7 +18,7 @@
 
 ## This Script will configure the following settings/configurations
 
-  * Secure PROC in /etc/fstab
+  * Secure PROC in `/etc/fstab`
 
   * Configure password quality in `/etc/pam.d/common-password`
 
@@ -32,7 +32,7 @@
 
   * Configure Password hashing rounds in `/etc/login.defs`
  
-  * Configure Core Dump in /etc/security/limits.conf and `/etc/sysctl.conf`
+  * Configure Core Dump in `/etc/security/limits.conf` and `/etc/sysctl.conf`
 
   * Add disclaimers to `/etc/ssh/banner`, `/etc/issue` and `/etc/issue.net`
 
