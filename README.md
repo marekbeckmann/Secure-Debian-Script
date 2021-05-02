@@ -50,7 +50,7 @@ This script is intended to run on a freshly installed Debian Linux! Otherwise, i
 
 * Via Github
 ```
-git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git --branch release --single-branch
+git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git
 ``` 
 * Via Official Server
 ```
