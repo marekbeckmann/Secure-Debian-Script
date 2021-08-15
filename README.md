@@ -38,7 +38,7 @@ git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git
 
 ## 2. Running the script
 
-If you downloaded the script via git, change into the automatedlinuxsecurity directory. If you downloaded the script via my official server, you have to unzip the archive and then change into the new directory. Now change the permissions on the script
+If you downloaded the script via git, change into the `Secure-Debian-10-Script` directory.
 ```
 sudo chmod +x secure-debian-10.sh
 ```
