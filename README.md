@@ -40,7 +40,7 @@ git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git
 
 If you downloaded the script via git, change into the automatedlinuxsecurity directory. If you downloaded the script via my official server, you have to unzip the archive and then change into the new directory. Now change the permissions on the script
 ```
-sudo chmod +x deploySecurity.sh
+sudo chmod +x secure-debian-10.sh
 ```
 You have the following options, running the script:
 
