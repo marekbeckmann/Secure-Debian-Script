@@ -40,7 +40,7 @@ git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git
 
 If you downloaded the script via git, change into the `Secure-Debian-10-Script` directory.
 ```
-sudo chmod +x secure-debian-10.sh
+chmod +x secure-debian-10.sh
 ```
 You have the following options, running the script:
 
