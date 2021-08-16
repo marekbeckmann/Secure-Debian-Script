@@ -33,7 +33,7 @@ This script is intended to run on a freshly installed Debian Linux! Otherwise, i
 ## 1. Download
 
 ```
-git clone https://github.com/mlhbeckmann/automatedlinuxsecurity.git
+git clone https://github.com/marekbeckmann/Secure-Debian-10-Script.git
 ``` 
 
 ## 2. Running the script
