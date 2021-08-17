@@ -14,12 +14,12 @@ function getIni() {
 }
 
 function backupConfigs() {
-    cp --archive "$1" "$1"-COPY-"$(date +"%m-%d-%Y")"
+    cp -pr --archive "$1" "$1"-COPY-"$(date +"%m-%d-%Y")"
 }
 
 function logToScreen() {
     clear
-    echo "$(tput setaf 2)$1$(tput sgr 0)"
+    printf '%s\n' "$(tput setaf 2)$1 $(tput sgr 0)"
     sleep 1
 }
 
@@ -27,7 +27,7 @@ function installPackages() {
     logToScreen "Installing Packages..."
     apt -y update
     apt -y full-upgrade
-    apt -y install libpam-google-authenticator ufw fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions
+    apt -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions
     logToScreen "Backing up configuration files..."
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
@@ -36,6 +36,8 @@ function installPackages() {
     backupConfigs "/etc/clamav/clamd.conf"
     backupConfigs "/etc/chkrootkit.conf"
     backupConfigs "/etc/ssh/sshd_config"
+    backupConfigs "/etc/default/aide"
+    backupConfigs "/etc/aide"
 }
 
 function secure_ssh() {
@@ -71,18 +73,43 @@ function secure_system() {
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
 
+    sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide
+
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf
     sysctl -p
-    chmod -R 0700 /home/
+    chmod -R 0700 /home/*
+    chmod 0644 /etc/passwd
+    chmod 0644 /etc/group
+    chmod -R 0600 /etc/cron.hourly
+    chmod -R 0600 /etc/cron.daily
+    chmod -R 0600 /etc/cron.weekly
+    chmod -R 0600 /etc/cron.monthly
+    chmod -R 0600 /etc/cron.d
+    chmod -R 0600 /etc/crontab
+    chmod -R 0600 /etc/shadow
+    chmod -R 0440 /etc/sudoers.d/*
+    chmod 0600 /etc/ssh/sshd_config
+    logToScreen "Initializing AIDE..."
+    aideinit -y -f
+
 }
 
 function secure_firewall() {
     logToScreen "Hardening Firewall..."
     ufw logging full
     ufw default deny incoming
-    ufw default allow outgoing
+    if [ "$1" = "-s" ] || [ "$1" = "--strict" ]; then
+        ufw default deny outgoing
+        ufw allow out 123/udp
+        ufw allow out dns
+        ufw allow out http
+        ufw allow out https
+        ufw allow out ftp
+    else
+        ufw default allow outgoing
+    fi
     ufw allow in "${sshPort}"/tcp
     ufw --force enable
 }
@@ -96,7 +123,7 @@ function secure_fail2ban() {
     fail2ban-client add sshd
 }
 
-function secure_updates(){
+function secure_updates() {
     logToScreen "Setting up unattended upgrades..."
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades
@@ -107,18 +134,18 @@ function script_summary() {
     systemctl restart sshd.service
     systemctl restart fail2ban.service
     ufw reload
-    clear
     summary="
     Summary: 
         SSH-Port: ${sshPort} 
         Run the following commands to conclude setup: 
             google-authenticator -t -d -f -r 3 -R 30 -W 
-            sudo ufw enable #Establish a new SSH Connection before enabling UFW 
+             
     The Script has finished! To apply all changes, you have to reboot your system 
     Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
     Thank you for using my script."
-    echo "$summary"
+    logToScreen "$summary"
 }
+
 function script_init() {
     if [ "$(whoami)" = "root" ]; then
         if [[ $1 = "-h" ]]; then
@@ -130,7 +157,7 @@ function script_init() {
             installPackages
             secure_system
             secure_ssh "$sshuser"
-            secure_firewall
+            secure_firewall "$1"
             secure_fail2ban
             secure_updates
             script_summary
