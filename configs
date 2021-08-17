@@ -47,6 +47,11 @@ Banner /etc/ssh/banner
 #Subsystem sftp  /usr/lib/ssh/sftp-server -l INFO
 END_SSHD
 
+START_PAM_SSHD
+auth required pam_unix.so try_first_pass
+auth required pam_google_authenticator.so echo_verification_code
+END_PAM_SSHD
+
 START_F2B_SSH
 [sshd]
 enabled = true
@@ -57,20 +62,13 @@ logpath = %(sshd_log)s
 maxretry = 5
 END_F2B_SSH
 
-START_UFW_RULE
--A INPUT -j LOG --log-tcp-options --log-prefix "[IPTABLES] "
--A FORWARD -j LOG --log-tcp-options --log-prefix "[IPTABLES] "
-
-COMMIT
-
-END_UFW_RULE
-
 START_COREDUMP
 * hard core 0
 * soft core 0
 END_COREDUMP
 
 START_DEFBANNER
+
 ********************************************************************
 *                                                                  *
 * This system is for the use of authorized users only.  Usage of   *
@@ -82,14 +80,8 @@ START_DEFBANNER
 * evidence from such monitoring to law enforcement officials.      *
 *                                                                  *
 ********************************************************************
-END_DEFBANNER
 
-START_PSAD
-ENABLE_PSADWATCHD Y;
-ENABLE_AUTO_IDS Y;
-ENABLE_AUTO_IDS_EMAILS Y;
-ENABLE_AUTO_IDS_REGEX Y;
-END_PSAD
+END_DEFBANNER
 
 START_HELP
 This Script will install and configure some security options on your server! 
@@ -99,10 +91,12 @@ These Changes will be made:
  -Password Policy 
  -UFW Firewall 
  -Freshclam Anti-Virus 
- -PSAD Intrusion Prevention 
+ -AIDE File Integrity 
  -Fail2Ban Intrusion Detection 
  -Chrootkit Detection 
  -Secure PROC 
+ -Debsums
+ -Unattended Upgrades
 END_HELP
 
 START_UNATTENDED_UPGRADES
