@@ -11,6 +11,7 @@
   * Password Quality
   * Unattended Upgrades
   * Debsums
+  * AIDE File system integrity
 
 ## This Script will configure the following settings/configurations
 
