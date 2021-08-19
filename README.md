@@ -65,3 +65,6 @@ google-authenticator -t -d -f -r 3 -R 30 -W
 ```
 If you want to answer the questions interactively, run google-authenticator without any options. Because some changes were made to the sysctl.conf, aswell as limits.conf, you have to reboot your system. Before you do that, you should make sure, that you can connect via SSH, to prevent locking yourself out of the system.
 
+## 3. Compatibility
+
+This Script was tested on freshly installed Debian 10 and Debian 11 systems repeatedly and should work without any problem. Nevertheless, make sure to leave a root session open, before running the script, just in case.
