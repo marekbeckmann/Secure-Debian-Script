@@ -34,18 +34,16 @@ This script is intended to run on a freshly installed Debian Linux! Otherwise, i
 ## 1. Download
 
 ```
-git clone https://github.com/marekbeckmann/Secure-Debian-10-Script.git
+git clone https://github.com/marekbeckmann/Secure-Debian-Script.git ~/Secure-Debian
+cd ~/Secure-Debian && chmod +x secure-debian.sh
 ``` 
 
 ## 2. Running the script
 
-If you downloaded the script via git, change into the `Secure-Debian-10-Script` directory.
-```
-chmod +x secure-debian-10.sh
-```
 You have the following options, running the script:
 
 * -h Quick help
+* -s or --strict to block outgoing traffic (UFW)
 
 After the script ended, it will give you a summary of the installation
 
