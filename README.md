@@ -45,6 +45,10 @@ You have the following options, running the script:
 * -h Quick help
 * -s or --strict to block outgoing traffic (UFW)
 
+```
+sudo ./secure-debian.sh
+```
+
 After the script ended, it will give you a summary of the installation
 
 ## 3. After the Script
