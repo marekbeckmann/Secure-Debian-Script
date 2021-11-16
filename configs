@@ -7,7 +7,7 @@ Port 20000
 #ListenAddress ::
 
 #Authentication
-AllowUsers yourUser
+AllowUsers
 ChallengeResponseAuthentication yes
 AuthenticationMethods keyboard-interactive
 PermitRootLogin no
