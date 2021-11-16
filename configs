@@ -45,6 +45,7 @@ Banner /etc/ssh/banner
 
 #SFTP
 #Subsystem sftp  /usr/lib/ssh/sftp-server -l INFO
+
 END_SSHD
 
 START_PAM_SSHD
