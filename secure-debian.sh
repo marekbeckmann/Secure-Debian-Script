@@ -19,15 +19,22 @@ function backupConfigs() {
 
 function logToScreen() {
     clear
-    printf '%s\n' "$(tput setaf 2)$1 $(tput sgr 0)"
+    if [[ "$2" = "--success" ]]; then
+        printf '%s\n' "$(tput setaf 2)$1 $(tput sgr 0)"
+    elif [[ "$2" = "--error" ]]; then
+        printf '%s\n' "$(tput setaf 1)$1 $(tput sgr 0)"
+        exit 1
+    else
+        printf '%s\n' "$(tput setaf 3)$1 $(tput sgr 0)"
+    fi
     sleep 1
 }
 
 function installPackages() {
     logToScreen "Installing Packages..."
-    apt -y update
-    apt -y full-upgrade
-    apt -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions
+    apt-get -y update
+    apt-get -y full-upgrade
+    apt-get -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions
     logToScreen "Backing up configuration files..."
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
@@ -42,7 +49,7 @@ function installPackages() {
 
 function secure_ssh() {
     logToScreen "Securing SSH..."
-    if [[ -z sshPort ]]; then
+    if [[ -z "$sshPort" ]]; then
         sshPort=$(shuf -i 28000-40000 -n 1)
     fi
     getIni "START_SSHD" "END_SSHD"
@@ -57,8 +64,9 @@ function secure_ssh() {
     else
         sed -i "s/AllowUsers yourUser/#AllowUsers yourUser/g" /etc/ssh/sshd_config
     fi
-    if [[ -z "$sshGroup" ]]; then
-        echo "AllowGroups" | tee -a /etc/ssh/sshd_config
+    if [[ -n "$sshGroup" ]]; then
+        echo "
+AllowGroups" | tee -a /etc/ssh/sshd_config
         IFS=',' read -ra ADDR <<<"$sshGroup"
         for i in "${ADDR[@]}"; do
             sed -i "/^AllowGroups/ s/$/ ${i}/" /etc/ssh/sshd_config
@@ -102,7 +110,7 @@ function secure_system() {
     if [[ "$lockRoot" = true ]]; then
         passwd -d root
         passwd -l root
-        chsh -s /usr/sbin/nologin root
+        sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
     fi
     logToScreen "Initializing AIDE..."
     aideinit -y -f
@@ -125,7 +133,7 @@ function secure_firewall() {
     fi
     ufw allow in "${sshPort}"/tcp
     if [[ -n "$fwPort" ]]; then
-        IFS=',' read -ra ADDR <<<"$sshUser"
+        IFS=',' read -ra ADDR <<<"$fwPort"
         for i in "${ADDR[@]}"; do
             ufw allow in "$i"
         done
@@ -214,21 +222,13 @@ function get_Params() {
 function script_init() {
     get_Params "$@"
     if [ "$(whoami)" = "root" ]; then
-        if [[ $1 = "-h" ]]; then
-            getIni "START_HELP" "END_HELP"
-            printf "%s" "$output"
-        else
-            read -rp "Enter User allowed for SSH: " sshuser
-            #logScript
-            installPackages
-            secure_system
-            secure_ssh "$sshuser"
-            secure_firewall "$1"
-            secure_fail2ban
-            secure_updates
-            script_summary
-        fi
-
+        installPackages
+        secure_system
+        secure_ssh
+        secure_firewall
+        secure_fail2ban
+        secure_updates
+        script_summary
     else
         echo "You need root prvileges to run this script!"
     fi
