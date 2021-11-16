@@ -42,15 +42,27 @@ function installPackages() {
 
 function secure_ssh() {
     logToScreen "Securing SSH..."
-    sshuser="$1"
-    sshPort=$(shuf -i 28000-40000 -n 1)
+    if [[ -z sshPort ]]; then
+        sshPort=$(shuf -i 28000-40000 -n 1)
+    fi
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config
     sed -i "s/20000/${sshPort}/g" /etc/ssh/sshd_config
-    if [[ $sshuser != "" ]]; then
-        sed -i "s/yourUser/${sshuser}/g" /etc/ssh/sshd_config
+
+    if [[ -n "$sshUser" ]]; then
+        IFS=',' read -ra ADDR <<<"$sshUser"
+        for i in "${ADDR[@]}"; do
+            sed -i "/^AllowUsers/ s/$/ ${i}/" /etc/ssh/sshd_config
+        done
     else
         sed -i "s/AllowUsers yourUser/#AllowUsers yourUser/g" /etc/ssh/sshd_config
+    fi
+    if [[ -z "$sshGroup" ]]; then
+        echo "AllowGroups" | tee -a /etc/ssh/sshd_config
+        IFS=',' read -ra ADDR <<<"$sshGroup"
+        for i in "${ADDR[@]}"; do
+            sed -i "/^AllowGroups/ s/$/ ${i}/" /etc/ssh/sshd_config
+        done
     fi
     getIni "START_PAM_SSHD" "END_PAM_SSHD"
     printf "%s" "$output" | tee -a /etc/pam.d/sshd
@@ -65,16 +77,12 @@ function secure_system() {
     sed -i -r -e "s/^(password\s+requisite\s+pam_pwquality.so)(.*)$/# \1\2 \n\1 retry=3 minlen=10 difok=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1 maxrepeat=3 gecoschec /" /etc/pam.d/common-password
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/5000/100000/g' /etc/login.defs
-
     sed -i '/PASS_MAX_DAYS/s/99999/180/g' /etc/login.defs
     sed -i '/PASS_WARN_AGE/s/7/28/g' /etc/login.defs
     sed -i '/UMASK/s/022/027/g' /etc/login.defs
-
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
-
     sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide
-
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf
@@ -91,6 +99,11 @@ function secure_system() {
     chmod -R 0600 /etc/shadow
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
+    if [[ "$lockRoot" = true ]]; then
+        passwd -d root
+        passwd -l root
+        chsh -s /usr/sbin/nologin root
+    fi
     logToScreen "Initializing AIDE..."
     aideinit -y -f
 
@@ -100,7 +113,7 @@ function secure_firewall() {
     logToScreen "Hardening Firewall..."
     ufw logging full
     ufw default deny incoming
-    if [ "$1" = "-s" ] || [ "$1" = "--strict" ]; then
+    if [[ "$strictFw" = true ]]; then
         ufw default deny outgoing
         ufw allow out 123/udp
         ufw allow out dns
@@ -111,7 +124,15 @@ function secure_firewall() {
         ufw default allow outgoing
     fi
     ufw allow in "${sshPort}"/tcp
-    ufw --force enable
+    if [[ -n "$fwPort" ]]; then
+        IFS=',' read -ra ADDR <<<"$sshUser"
+        for i in "${ADDR[@]}"; do
+            ufw allow in "$i"
+        done
+    fi
+    if [[ -z "$enableFirewall" ]]; then
+        ufw --force enable
+    fi
 }
 
 function secure_fail2ban() {
@@ -137,6 +158,8 @@ function script_summary() {
     summary="
     Summary: 
         SSH-Port: ${sshPort} 
+        Allowed SSH Users: ${sshUser}
+        Allowed SSH Group: ${sshGroup}
         Run the following commands to conclude setup: 
             google-authenticator -t -d -f -r 3 -R 30 -W 
              
@@ -146,7 +169,50 @@ function script_summary() {
     logToScreen "$summary"
 }
 
+function get_Params() {
+    while test $# -gt 0; do
+        case "$1" in
+        -h | --help)
+            helpMsg
+            ;;
+        -u | --allow-sshuser)
+            sshUser="$2"
+            ;;
+        -g | --allow-sshgroup)
+            sshGroup="$2"
+            ;;
+        -p | --ssh-port)
+            sshPort="$2"
+            ;;
+        -l | --lock-root)
+            lockRoot=true
+            ;;
+        -n | --no-firewall)
+            enableFirewall=false
+            ;;
+        -a | --allow-port)
+            fwPort="$2"
+            ;;
+        -s | --strict-firewall)
+            strictFw=true
+            ;;
+        --*)
+            logToScreen "Unknown option $1" --error
+            helpMsg
+            exit 1
+            ;;
+        -*)
+            logToScreen "Unknown option $1" --error
+            helpMsg
+            exit 1
+            ;;
+        esac
+        shift
+    done
+}
+
 function script_init() {
+    get_Params "$@"
     if [ "$(whoami)" = "root" ]; then
         if [[ $1 = "-h" ]]; then
             getIni "START_HELP" "END_HELP"
@@ -168,4 +234,4 @@ function script_init() {
     fi
 }
 
-script_init "$1"
+script_init "$@"
