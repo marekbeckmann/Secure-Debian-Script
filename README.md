@@ -42,8 +42,16 @@ cd ~/Secure-Debian && chmod +x secure-debian.sh
 
 You have the following options, running the script:
 
-* -h Quick help
-* -s or --strict to block outgoing traffic (UFW)
+| Option | Description |
+|--|--|
+| `-h` `--help` | Prints help message, that shows all options and a short description |
+| `-u` `--allow-sshuser` `<user1,user2>` | Specifies user(s) that are allowed to login |
+| `-g` `--allow-sshgroup` `<group1,group2>` | Specifies group(s) that are allowed to login |
+| `-p` `--ssh-port` `<port>` | Sets the port SSH listens on. If not specified, random port is used |
+| `-l` `--lock-root` | Locks the root user account |
+| `-n` `--no-firewall` | Doesn't activate firewall, but rules are generated |
+| `-a` `--allow-port` `<portX,portY>` | Allow port(s) allowed for incoming traffic (you can specify a protocol) |
+| `-s` `--strict-firewall` | Denies outgoing traffic, except for nescessary protocols |
 
 ```
 sudo ./secure-debian.sh
