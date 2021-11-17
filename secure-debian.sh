@@ -62,15 +62,16 @@ function secure_ssh() {
             sed -i "/^AllowUsers/ s/$/ ${i}/" /etc/ssh/sshd_config
         done
     else
-        sed -i "s/AllowUsers yourUser/#AllowUsers yourUser/g" /etc/ssh/sshd_config
+        sed -i "s/AllowUsers/#AllowUsers yourUser/g" /etc/ssh/sshd_config
     fi
+
     if [[ -n "$sshGroup" ]]; then
-        echo "
-AllowGroups" | tee -a /etc/ssh/sshd_config
         IFS=',' read -ra ADDR <<<"$sshGroup"
         for i in "${ADDR[@]}"; do
             sed -i "/^AllowGroups/ s/$/ ${i}/" /etc/ssh/sshd_config
         done
+    else
+        sed -i "s/AllowGroups/#AllowGroups yourGroup/g" /etc/ssh/sshd_config
     fi
     getIni "START_PAM_SSHD" "END_PAM_SSHD"
     printf "%s" "$output" | tee -a /etc/pam.d/sshd
