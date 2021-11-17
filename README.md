@@ -53,8 +53,9 @@ You have the following options, running the script:
 | `-a` `--allow-port` `<portX,portY>` | Allow port(s) allowed for incoming traffic (you can specify a protocol) |
 | `-s` `--strict-firewall` | Denies outgoing traffic, except for nescessary protocols |
 
+Example: 
 ```
-sudo ./secure-debian.sh
+sudo bash secure-debian.sh -u user1,user2 -g ssh -l -a 80,443
 ```
 
 After the script ended, it will give you a summary of the installation
