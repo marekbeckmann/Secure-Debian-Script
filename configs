@@ -8,6 +8,7 @@ Port 20000
 
 #Authentication
 AllowUsers
+AllowGroups
 ChallengeResponseAuthentication yes
 AuthenticationMethods keyboard-interactive
 PermitRootLogin no
