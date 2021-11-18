@@ -10,7 +10,7 @@ function logScript() {
 function getIni() {
     startsection="$1"
     endsection="$2"
-    output="$(awk "/$startsection/{ f = 1; next } /$endsection/{ f = 0 } f" configs)"
+    output="$(awk "/$startsection/{ f = 1; next } /$endsection/{ f = 0 } f" "${configFile}")"
 }
 
 function backupConfigs() {
@@ -165,18 +165,31 @@ function script_summary() {
     systemctl restart sshd.service
     systemctl restart fail2ban.service
     ufw reload
-    summary="
-    Summary: 
-        SSH-Port: ${sshPort} 
-        Allowed SSH Users: ${sshUser}
-        Allowed SSH Group: ${sshGroup}
-        Run the following commands to conclude setup: 
-            google-authenticator -t -d -f -r 3 -R 30 -W 
+    summary="Summary: 
+SSH-Port: ${sshPort} 
+Allowed SSH Users: ${sshUser}
+Allowed SSH Group: ${sshGroup}
+Run the following command to conclude setup: 
+    google-authenticator -t -d -f -r 3 -R 30 -W 
              
-    The Script has finished! To apply all changes, you have to reboot your system 
-    Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
-    Thank you for using my script."
-    logToScreen "$summary"
+The Script has finished! To apply all changes, you have to reboot your system 
+Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
+Thank you for using my script."
+    logToScreen "$summary" --success
+}
+
+function helpMsg() {
+    logToScreen "Help for Debian Secure Script (Debian 10/11)
+You can use the following Options:
+  [-h] => Help Dialog
+  [-u] [--allow-sshuser] => Specifies user(s) that are allowed to login via SSH [default=all]
+  [-g] [--allow-sshgroup] => Specifies group(s) that are allowed to login via SSH [default=all]
+  [-p] [--ssh-port] => Specifies the port SSH listens on. If not specified, random port is used
+  [-l] [--lock-root] => Disables the root account
+  [-n] [--no-firewall] => Doesn't activate firewall, but rules are generated
+  [-a] [--allow-port] => Allow port(s) allowed for incoming traffic (you can specify a protocol)
+  [-s] [--strict-firewall] => Denies outgoing traffic, except for nescessary protocols
+More Documentation can be found on Github: https://github.com/marekbeckmann/Secure-Debian-Script"
 }
 
 function get_Params() {
@@ -206,6 +219,9 @@ function get_Params() {
         -s | --strict-firewall)
             strictFw=true
             ;;
+        -c | --config)
+            configFile="$2"
+            ;;
         --*)
             logToScreen "Unknown option $1" --error
             helpMsg
@@ -223,14 +239,21 @@ function get_Params() {
 
 function script_init() {
     get_Params "$@"
+    if [[ -z "$configFile" ]]; then
+        configFile="configs"
+    fi
     if [ "$(whoami)" = "root" ]; then
-        installPackages
-        secure_system
-        secure_ssh
-        secure_firewall
-        secure_fail2ban
-        secure_updates
-        script_summary
+        if [[ -f "$configFile" ]]; then
+            installPackages
+            secure_system
+            secure_ssh
+            secure_firewall
+            secure_fail2ban
+            secure_updates
+            script_summary
+        else
+            logToScreen "Configuration file couldn't be found. Please download \"configs\" from the Git repository, and place it in the same directory as the Script." --error
+        fi
     else
         echo "You need root prvileges to run this script!"
     fi
