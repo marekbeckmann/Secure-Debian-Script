@@ -189,6 +189,7 @@ You can use the following Options:
   [-n] [--no-firewall] => Doesn't activate firewall, but rules are generated
   [-a] [--allow-port] => Allow port(s) allowed for incoming traffic (you can specify a protocol)
   [-s] [--strict-firewall] => Denies outgoing traffic, except for nescessary protocols
+  [-c] [--config] => Specifies path for the configuration file [defaults to ./configs]
 More Documentation can be found on Github: https://github.com/marekbeckmann/Secure-Debian-Script"
 }
 
