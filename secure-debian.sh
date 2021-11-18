@@ -198,7 +198,7 @@ function get_Params() {
         case "$1" in
         -h | --help)
             helpMsg
-            exit
+            exit 0
             ;;
         -u | --allow-sshuser)
             sshUser="$2"
