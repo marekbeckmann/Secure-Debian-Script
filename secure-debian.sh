@@ -34,7 +34,7 @@ function installPackages() {
     logToScreen "Installing Packages..."
     apt-get -y update
     apt-get -y full-upgrade
-    apt-get -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions
+    apt-get -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
     logToScreen "Backing up configuration files..."
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
@@ -54,6 +54,7 @@ function secure_ssh() {
     fi
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config
+    dos2unix /etc/ssh/sshd_config
     sed -i "s/20000/${sshPort}/g" /etc/ssh/sshd_config
 
     if [[ -n "$sshUser" ]]; then
