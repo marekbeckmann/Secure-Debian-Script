@@ -1,12 +1,5 @@
 #!/bin/bash
 
-function logScript() {
-    exec 3>&1 4>&2
-    trap 'exec 2>&4 1>&3' 0 1 2 3
-    exec 1>/tmp/secure-debian-script.log 2>&1
-
-}
-
 function getIni() {
     startsection="$1"
     endsection="$2"
@@ -34,23 +27,39 @@ function installPackages() {
     logToScreen "Installing Packages..."
     apt-get -y update
     apt-get -y full-upgrade
-    apt-get -y install libpam-google-authenticator ufw aide fail2ban clamav clamav-freshclam clamav-daemon chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
+    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
+    if [[ -n "$withAide" ]]; then
+        logToScreen "Installing AIDE..."
+        apt-get -y install aide
+        logToScreen "Backing up configuration files..."
+        backupConfigs "/etc/aide"
+        backupConfigs "/etc/default/aide"
+    fi
+    if [[ -n "$withClamav" ]]; then
+        logToScreen "Installing Clamav..."
+        apt-get -y clamav clamav-freshclam clamav-daemon
+        logToScreen "Backing up configuration files..."
+        backupConfigs "/etc/clamav/freshclam.conf"
+        backupConfigs "/etc/clamav/clamd.conf"
+    fi
     logToScreen "Backing up configuration files..."
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
     backupConfigs "/etc/pam.d/sshd"
-    backupConfigs "/etc/clamav/freshclam.conf"
-    backupConfigs "/etc/clamav/clamd.conf"
     backupConfigs "/etc/chkrootkit.conf"
     backupConfigs "/etc/ssh/sshd_config"
-    backupConfigs "/etc/default/aide"
-    backupConfigs "/etc/aide"
+
 }
 
 function secure_ssh() {
     logToScreen "Securing SSH..."
     if [[ -z "$sshPort" ]]; then
-        sshPort=$(shuf -i 28000-40000 -n 1)
+        if [[ -n "$defaultSsh" ]]; then
+            sshPort="22"
+        else
+            sshPort=$(shuf -i 28000-40000 -n 1)
+        fi
+
     fi
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config
@@ -78,7 +87,7 @@ function secure_ssh() {
     printf "%s" "$output" | tee -a /etc/pam.d/sshd
     systemctl restart sshd.service
     getIni "START_DEFBANNER" "END_DEFBANNER"
-    printf "%s" "$output" | tee /etc/ssh/banner /etc/issue /etc/issue.net
+    printf "%s" "$output" | tee /etc/issue /etc/issue.net
 }
 
 function secure_system() {
@@ -114,8 +123,10 @@ function secure_system() {
         passwd -l root
         sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
     fi
-    logToScreen "Initializing AIDE..."
-    aideinit -y -f
+    if [[ -n "$withAide" ]]; then
+        logToScreen "Initializing AIDE..."
+        aideinit -y -f
+    fi
 
 }
 
@@ -190,6 +201,9 @@ You can use the following Options:
   [-a] [--allow-port] => Allow port(s) allowed for incoming traffic (you can specify a protocol)
   [-s] [--strict-firewall] => Denies outgoing traffic, except for nescessary protocols
   [-c] [--config] => Specifies path for the configuration file [defaults to ./configs]
+  [--with-aide] => Installs and configures AIDE
+  [--with-clamav] => Installs and configures ClamAV
+  [--default-ssh] => Sets the SSH-Port to 22 (default)
 More Documentation can be found on Github: https://github.com/marekbeckmann/Secure-Debian-Script"
 }
 
@@ -223,6 +237,15 @@ function get_Params() {
             ;;
         -c | --config)
             configFile="$2"
+            ;;
+        --with-aide)
+            withAide=true
+            ;;
+        --with-clamav)
+            withClamav=true
+            ;;
+        --default-ssh)
+            defaultSsh=true
             ;;
         --*)
             logToScreen "Unknown option $1" --error
