@@ -88,6 +88,8 @@ function secure_ssh() {
     systemctl restart sshd.service
     getIni "START_DEFBANNER" "END_DEFBANNER"
     printf "%s" "$output" | tee /etc/issue /etc/issue.net
+    echo "" >>/etc/issue
+    echo "" >>/etc/issue.net
 }
 
 function secure_system() {
