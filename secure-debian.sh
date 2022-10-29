@@ -265,7 +265,7 @@ function get_Params() {
 function script_init() {
     get_Params "$@"
     if [[ -z "$configFile" ]]; then
-        configFile="configs"
+        configFile="config.ini"
     fi
     if [ "$(whoami)" = "root" ]; then
         if [[ -f "$configFile" ]]; then
