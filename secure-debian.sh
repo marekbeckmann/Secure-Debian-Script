@@ -233,13 +233,13 @@ function script_summary() {
     systemctl restart sshd.service >/dev/null 2>&1
     systemctl restart fail2ban.service >/dev/null 2>&1
     ufw reload >/dev/null 2>&1
+    msg_ok "Script completed successfully"
     if [[ -n "$auditSystem" ]]; then
         msg_info "Running Lynis security audit"
         lynis audit system --quiet --report-file /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
         new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
     fi
-    msg_ok "Script completed successfully"
 
     summary="
 Summary: 
