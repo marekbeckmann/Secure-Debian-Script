@@ -42,10 +42,10 @@ function installPackages() {
     msg_info "Updating system"
     apt-get -qq -o=Dpkg::Use-Pty=0 -y -m update
     apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m full-upgrade
-    msg_success "System updated successfully"
+    msg_ok "System updated successfully"
     msg_info "Installing required packages"
     apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
-    msg_success "Packages installed successfully."
+    msg_ok "Packages installed successfully."
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
         apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m install aide
@@ -53,16 +53,16 @@ function installPackages() {
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
-        msg_success "AIDE configuration files backed up successfully."
+        msg_ok "AIDE configuration files backed up successfully."
     fi
     if [[ -n "$withClamav" ]]; then
         msg_info "Installing Clamav"
         apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m clamav clamav-freshclam clamav-daemon
-        msg_success "Clamav installed successfully."
+        msg_ok "Clamav installed successfully."
         msg_info "Backing up Clamav configuration files"
         backupConfigs "/etc/clamav/freshclam.conf"
         backupConfigs "/etc/clamav/clamd.conf"
-        msg_success "Clamav configuration files backed up successfully."
+        msg_ok "Clamav configuration files backed up successfully."
     fi
     msg_info "Backing up configuration files"
     backupConfigs "/etc/fstab"
@@ -70,7 +70,7 @@ function installPackages() {
     backupConfigs "/etc/pam.d/sshd"
     backupConfigs "/etc/chkrootkit.conf"
     backupConfigs "/etc/ssh/sshd_config"
-    msg_success "Configuration files backed up successfully."
+    msg_ok "Configuration files backed up successfully."
 }
 
 function secure_ssh() {
@@ -112,7 +112,7 @@ function secure_ssh() {
     printf "%s" "$output" | tee /etc/issue /etc/issue.net
     echo "" >>/etc/issue
     echo "" >>/etc/issue.net
-    msg_success "SSH secured successfully."
+    msg_ok "SSH secured successfully."
 }
 
 function secure_system() {
@@ -143,18 +143,18 @@ function secure_system() {
     chmod -R 0600 /etc/shadow
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
-    msg_success "System secured successfully."
+    msg_ok "System secured successfully."
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
         passwd -d root
         passwd -l root
         #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
-        msg_success "Root account locked successfully."
+        msg_ok "Root account locked successfully."
     fi
     if [[ -n "$withAide" ]]; then
         msg_info "Initializing AIDE"
         aideinit -y -f
-        msg_success "AIDE initialized successfully."
+        msg_ok "AIDE initialized successfully."
     fi
 
 }
@@ -180,7 +180,7 @@ function secure_firewall() {
             ufw allow in "$i"
         done
     fi
-    msg_success "Configured Firewall successfully."
+    msg_ok "Configured Firewall successfully."
     if [[ -z "$enableFirewall" ]]; then
         msg_info "Enabling Firewall"
         ufw --force enable
@@ -196,7 +196,7 @@ function secure_fail2ban() {
     fail2ban-client start
     fail2ban-client reload
     fail2ban-client add sshd
-    msg_success "Fail2ban configured successfully."
+    msg_ok "Fail2ban configured successfully."
 }
 
 function secure_updates() {
@@ -204,7 +204,7 @@ function secure_updates() {
     logToScreen "Setting up unattended upgrades"
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades
-    msg_success "Unattended upgrades configured successfully."
+    msg_ok "Unattended upgrades configured successfully."
 }
 
 function script_summary() {
@@ -213,7 +213,7 @@ function script_summary() {
     systemctl restart sshd.service
     systemctl restart fail2ban.service
     ufw reload
-    msg_success "Script completed successfully."
+    msg_ok "Script completed successfully."
 
     summary="Summary: 
 SSH-Port: ${sshPort} 
