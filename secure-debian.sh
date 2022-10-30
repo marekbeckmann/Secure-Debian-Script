@@ -133,8 +133,10 @@ function secure_ssh() {
     systemctl restart sshd.service >/dev/null 2>&1
     getIni "START_DEFBANNER" "END_DEFBANNER"
     printf "%s" "$output" | tee /etc/issue /etc/issue.net >/dev/null 2>&1
-    echo "" >>/etc/issue >/dev/null 2>&1
-    echo "" >>/etc/issue.net >/dev/null 2>&1
+    echo "
+    " >>/etc/issue >/dev/null 2>&1
+    echo "
+    " >>/etc/issue.net >/dev/null 2>&1
     msg_ok "SSH secured successfully"
 }
 
