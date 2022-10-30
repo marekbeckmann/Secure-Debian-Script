@@ -54,25 +54,30 @@ function installPackages() {
         msg_info "Updating Lynis database"
         lynis update info >/dev/null 2>&1
         msg_ok "Lynis database updated successfully"
-        msg_info "Running Lynis audit for base score"
+        msg_info "Running Lynis audit for base score (this can take a while)"
         lynis audit system --quiet --report-file /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
         base_score="$(grep hardening_index /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${base_score}"
     fi
 
     msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools >/dev/null 2>&1
+    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
     msg_ok "Packages installed successfully"
 
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
-        apt-get -y install aide >/dev/null 2>&1
+        apt-get -y install aide aide-common >/dev/null 2>&1
         msg_info "AIDE installed successfully"
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
-        msg_ok "AIDE configuration files backed up successfully"
+        msg_ok "AIDE configuration files backed up successfully (this can take a while)"
+        msg_info "Configuring AIDE"
+        sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide >/dev/null 2>&1
+        aideinit -y -f >/dev/null 2>&1
+        msg_ok "AIDE configured successfully"
     fi
+
     if [[ -n "$withClamav" ]]; then
         msg_info "Installing Clamav"
         apt-get -y clamav clamav-freshclam clamav-daemon >/dev/null 2>&1
@@ -145,7 +150,6 @@ function secure_system() {
     sed -i '/UMASK/s/022/027/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
-    sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide >/dev/null 2>&1
     echo "HRNGDEVICE=/dev/urandom" | tee -a /etc/default/rng-tools >/dev/null 2>&1
     systemctl restart rng-tools.service >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
