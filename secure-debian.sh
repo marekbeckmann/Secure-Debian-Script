@@ -187,8 +187,8 @@ function secure_firewall() {
     ufw default deny incoming >/dev/null 2>&1
     if [[ "$strictFw" = true ]]; then
         if [[ $(who am i) =~ \([-a-zA-Z0-9\.]+\)$ ]]; then
-            msg_error "Can't use strict firewall with a remote connection"
-            exit 1
+            msg_error "Can't use strict firewall with a remote connection, skipping..."
+            ufw allow outgoing >/dev/null 2>&1
         else
             ufw default deny outgoing >/dev/null 2>&1
             ufw allow out 123/udp >/dev/null 2>&1
