@@ -45,6 +45,12 @@ function installPackages() {
     apt-get -y install apt-transport-https ca-certificates host gnupg lsb-release >/dev/null 2>&1
     msg_ok "System updated successfully"
     if [[ -n "$auditSystem" ]]; then
+        msg_info "Installing Lynis"
+        wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+        echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
+        apt-get -y update >/dev/null 2>&1
+        apt-get -y install lynis host >/dev/null 2>&1
+        msg_ok "Lynis installed successfully"
         msg_info "Updating Lynis database"
         lynis update info >/dev/null 2>&1
         msg_ok "Lynis database updated successfully"
@@ -56,29 +62,25 @@ function installPackages() {
 
     msg_info "Installing required packages"
     apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools >/dev/null 2>&1
-    wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
-    echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
-    apt-get -y update >/dev/null 2>&1
-    apt-get -y install lynis host >/dev/null 2>&1
-    msg_ok "Packages installed successfully."
+    msg_ok "Packages installed successfully"
 
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
         apt-get -y install aide >/dev/null 2>&1
-        msg_info "AIDE installed successfully."
+        msg_info "AIDE installed successfully"
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
-        msg_ok "AIDE configuration files backed up successfully."
+        msg_ok "AIDE configuration files backed up successfully"
     fi
     if [[ -n "$withClamav" ]]; then
         msg_info "Installing Clamav"
         apt-get -y clamav clamav-freshclam clamav-daemon >/dev/null 2>&1
-        msg_ok "Clamav installed successfully."
+        msg_ok "Clamav installed successfully"
         msg_info "Backing up Clamav configuration files"
         backupConfigs "/etc/clamav/freshclam.conf"
         backupConfigs "/etc/clamav/clamd.conf"
-        msg_ok "Clamav configuration files backed up successfully."
+        msg_ok "Clamav configuration files backed up successfully"
     fi
     msg_info "Backing up configuration files"
     backupConfigs "/etc/fstab"
@@ -86,7 +88,7 @@ function installPackages() {
     backupConfigs "/etc/pam.d/sshd"
     backupConfigs "/etc/chkrootkit.conf"
     backupConfigs "/etc/ssh/sshd_config"
-    msg_ok "Configuration files backed up successfully."
+    msg_ok "Configuration files backed up successfully"
 }
 
 function secure_ssh() {
@@ -128,7 +130,7 @@ function secure_ssh() {
     printf "%s" "$output" | tee /etc/issue /etc/issue.net >/dev/null 2>&1
     echo "" >>/etc/issue >/dev/null 2>&1
     echo "" >>/etc/issue.net >/dev/null 2>&1
-    msg_ok "SSH secured successfully."
+    msg_ok "SSH secured successfully"
 }
 
 function secure_system() {
@@ -162,18 +164,18 @@ function secure_system() {
     chmod -R 0600 /etc/shadow
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
-    msg_ok "System secured successfully."
+    msg_ok "System secured successfully"
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
         passwd -d root >/dev/null 2>&1
         passwd -l root >/dev/null 2>&1
         #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
-        msg_ok "Root account locked successfully."
+        msg_ok "Root account locked successfully"
     fi
     if [[ -n "$withAide" ]]; then
         msg_info "Initializing AIDE"
         aideinit -y -f >/dev/null 2>&1
-        msg_ok "AIDE initialized successfully."
+        msg_ok "AIDE initialized successfully"
     fi
 
 }
@@ -199,7 +201,7 @@ function secure_firewall() {
             ufw allow in "$i" >/dev/null 2>&1
         done
     fi
-    msg_ok "Configured Firewall successfully."
+    msg_ok "Configured Firewall successfully"
     if [[ -z "$enableFirewall" ]]; then
         msg_info "Enabling Firewall"
         ufw --force enable >/dev/null 2>&1
@@ -215,14 +217,14 @@ function secure_fail2ban() {
     fail2ban-client start >/dev/null 2>&1
     fail2ban-client reload >/dev/null 2>&1
     fail2ban-client add sshd >/dev/null 2>&1
-    msg_ok "Fail2ban configured successfully."
+    msg_ok "Fail2ban configured successfully"
 }
 
 function secure_updates() {
     msg_info "Configuring unattended updates"
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades >/dev/null 2>&1
-    msg_ok "Unattended upgrades configured successfully."
+    msg_ok "Unattended upgrades configured successfully"
 }
 
 function script_summary() {
@@ -237,7 +239,7 @@ function script_summary() {
         new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
     fi
-    msg_ok "Script completed successfully."
+    msg_ok "Script completed successfully"
 
     summary="
 Summary: 
