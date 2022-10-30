@@ -20,7 +20,7 @@ function getIni() {
 }
 
 function backupConfigs() {
-    cp -pr --archive "$1" "$1"-COPY-"$(date +"%m-%d-%Y")"
+    cp -pr --archive "$1" "$1"-COPY-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
 }
 
 function msg_info() {
@@ -40,15 +40,15 @@ function msg_error() {
 
 function installPackages() {
     msg_info "Updating system"
-    apt-get -qq -o=Dpkg::Use-Pty=0 -y -m update
-    apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m full-upgrade
+    apt-get -y update >/dev/null 2>&1
+    apt-get -y full-upgrade >/dev/null 2>&1
     msg_ok "System updated successfully"
     msg_info "Installing required packages"
-    apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
+    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix >/dev/null 2>&1
     msg_ok "Packages installed successfully."
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
-        apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m install aide
+        apt-get -y install aide >/dev/null 2>&1
         msg_info "AIDE installed successfully."
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
@@ -57,7 +57,7 @@ function installPackages() {
     fi
     if [[ -n "$withClamav" ]]; then
         msg_info "Installing Clamav"
-        apt-get -qq -o=Dpkg::Use-Pty=0 -y -f -m clamav clamav-freshclam clamav-daemon
+        apt-get -y clamav clamav-freshclam clamav-daemon >/dev/null 2>&1
         msg_ok "Clamav installed successfully."
         msg_info "Backing up Clamav configuration files"
         backupConfigs "/etc/clamav/freshclam.conf"
@@ -84,8 +84,8 @@ function secure_ssh() {
 
     fi
     getIni "START_SSHD" "END_SSHD"
-    printf "%s" "$output" | tee /etc/ssh/sshd_config
-    dos2unix /etc/ssh/sshd_config
+    printf "%s" "$output" | tee /etc/ssh/sshd_config >/dev/null 2>&1
+    dos2unix /etc/ssh/sshd_config >/dev/null 2>&1
     sed -i "s/20000/${sshPort}/g" /etc/ssh/sshd_config
 
     if [[ -n "$sshUser" ]]; then
@@ -106,18 +106,18 @@ function secure_ssh() {
         sed -i "s/AllowGroups/#AllowGroups yourGroup/g" /etc/ssh/sshd_config
     fi
     getIni "START_PAM_SSHD" "END_PAM_SSHD"
-    printf "%s" "$output" | tee -a /etc/pam.d/sshd
-    systemctl restart sshd.service
+    printf "%s" "$output" | tee -a /etc/pam.d/sshd >/dev/null 2>&1
+    systemctl restart sshd.service >/dev/null 2>&1
     getIni "START_DEFBANNER" "END_DEFBANNER"
-    printf "%s" "$output" | tee /etc/issue /etc/issue.net
-    echo "" >>/etc/issue
-    echo "" >>/etc/issue.net
+    printf "%s" "$output" | tee /etc/issue /etc/issue.net >/dev/null 2>&1
+    echo "" >>/etc/issue >/dev/null 2>&1
+    echo "" >>/etc/issue.net >/dev/null 2>&1
     msg_ok "SSH secured successfully."
 }
 
 function secure_system() {
     msg_info "Securing System"
-    echo -e "\nproc     /proc     proc     defaults,hidepid=2     0     0" | tee -a /etc/fstab
+    echo -e "\nproc     /proc     proc     defaults,hidepid=2     0     0" | tee -a /etc/fstab >/dev/null 2>&1
     sed -i -r -e "s/^(password\s+requisite\s+pam_pwquality.so)(.*)$/# \1\2 \n\1 retry=3 minlen=10 difok=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1 maxrepeat=3 gecoschec /" /etc/pam.d/common-password
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/5000/100000/g' /etc/login.defs
@@ -126,11 +126,11 @@ function secure_system() {
     sed -i '/UMASK/s/022/027/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
-    sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide
+    sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
-    printf "%s" "$output" | tee -a /etc/security/limits.conf
-    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf
-    sysctl -p
+    printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
+    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf >/dev/null 2>&1
+    sysctl -p >/dev/null 2>&1
     chmod -R 0700 /home/*
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
@@ -146,14 +146,14 @@ function secure_system() {
     msg_ok "System secured successfully."
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
-        passwd -d root
-        passwd -l root
+        passwd -d root >/dev/null 2>&1
+        passwd -l root >/dev/null 2>&1
         #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
         msg_ok "Root account locked successfully."
     fi
     if [[ -n "$withAide" ]]; then
         msg_info "Initializing AIDE"
-        aideinit -y -f
+        aideinit -y -f >/dev/null 2>&1
         msg_ok "AIDE initialized successfully."
     fi
 
@@ -161,29 +161,29 @@ function secure_system() {
 
 function secure_firewall() {
     msg_info "Hardening Firewall"
-    ufw logging full
-    ufw default deny incoming
+    ufw logging full >/dev/null 2>&1
+    ufw default deny incoming >/dev/null 2>&1
     if [[ "$strictFw" = true ]]; then
-        ufw default deny outgoing
-        ufw allow out 123/udp
-        ufw allow out dns
-        ufw allow out http
-        ufw allow out https
-        ufw allow out ftp
+        ufw default deny outgoing >/dev/null 2>&1
+        ufw allow out 123/udp >/dev/null 2>&1
+        ufw allow out dns >/dev/null 2>&1
+        ufw allow out http >/dev/null 2>&1
+        ufw allow out https >/dev/null 2>&1
+        ufw allow out ftp >/dev/null 2>&1
     else
-        ufw default allow outgoing
+        ufw default allow outgoing >/dev/null 2>&1
     fi
-    ufw allow in "${sshPort}"/tcp
+    ufw allow in "${sshPort}"/tcp >/dev/null 2>&1
     if [[ -n "$fwPort" ]]; then
         IFS=',' read -ra ADDR <<<"$fwPort"
         for i in "${ADDR[@]}"; do
-            ufw allow in "$i"
+            ufw allow in "$i" >/dev/null 2>&1
         done
     fi
     msg_ok "Configured Firewall successfully."
     if [[ -z "$enableFirewall" ]]; then
         msg_info "Enabling Firewall"
-        ufw --force enable
+        ufw --force enable >/dev/null 2>&1
         msg_info "Firewall enabled."
     fi
 }
@@ -191,11 +191,11 @@ function secure_firewall() {
 function secure_fail2ban() {
     msg_info "Setting up Fail2ban"
     getIni "START_F2B_SSH" "END_F2B_SSH"
-    printf "%s" "$output" | tee -a /etc/fail2ban/jail.d/ssh.local
+    printf "%s" "$output" | tee -a /etc/fail2ban/jail.d/ssh.local >/dev/null 2>&1
     rm -f /etc/fail2ban/jail.d/defaults-debian.conf
-    fail2ban-client start
-    fail2ban-client reload
-    fail2ban-client add sshd
+    fail2ban-client start >/dev/null 2>&1
+    fail2ban-client reload >/dev/null 2>&1
+    fail2ban-client add sshd >/dev/null 2>&1
     msg_ok "Fail2ban configured successfully."
 }
 
@@ -203,16 +203,16 @@ function secure_updates() {
     msg_info "Configuring unattended updates"
     logToScreen "Setting up unattended upgrades"
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
-    printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades
+    printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades >/dev/null 2>&1
     msg_ok "Unattended upgrades configured successfully."
 }
 
 function script_summary() {
     msg_info "Cleaning up and finalizing"
-    apt -y autoremove
-    systemctl restart sshd.service
-    systemctl restart fail2ban.service
-    ufw reload
+    apt -y autoremove >/dev/null 2>&1
+    systemctl restart sshd.service >/dev/null 2>&1
+    systemctl restart fail2ban.service >/dev/null 2>&1
+    ufw reload >/dev/null 2>&1
     msg_ok "Script completed successfully."
 
     summary="Summary: 
