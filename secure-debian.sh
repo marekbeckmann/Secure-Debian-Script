@@ -201,7 +201,6 @@ function secure_fail2ban() {
 
 function secure_updates() {
     msg_info "Configuring unattended updates"
-    logToScreen "Setting up unattended upgrades"
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades >/dev/null 2>&1
     msg_ok "Unattended upgrades configured successfully."
