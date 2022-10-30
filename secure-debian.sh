@@ -40,30 +40,32 @@ function msg_error() {
 }
 
 function installPackages() {
-    msg_info "Installing required packages..."
-    apt-get -y -m update >/dev/null 2>&1
-    apt-get --force-yes -f -m full-upgrade >/dev/null 2>&1
-    apt-get --force-yes -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix >/dev/null 2>&1
+    msg_info "Updating system"
+    apt-get -y -m update
+    apt-get --force-yes -f -m full-upgrade
+    msg_success "System updated successfully"
+    msg_info "Installing required packages"
+    apt-get --force-yes -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
     msg_success "Packages installed successfully."
     if [[ -n "$withAide" ]]; then
-        msg_info "Installing AIDE..."
-        apt-get --force-yes -f -m install aide >/dev/null 2>&1
+        msg_info "Installing AIDE"
+        apt-get --force-yes -f -m install aide
         msg_info "AIDE installed successfully."
-        msg_info "Backing up AIDE configuration files..."
+        msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
         msg_success "AIDE configuration files backed up successfully."
     fi
     if [[ -n "$withClamav" ]]; then
-        msg_info "Installing Clamav..."
-        apt-get -y clamav clamav-freshclam clamav-daemon
+        msg_info "Installing Clamav"
+        apt-get --force-yes -f -m clamav clamav-freshclam clamav-daemon
         msg_success "Clamav installed successfully."
-        msg_info "Backing up Clamav configuration files..."
+        msg_info "Backing up Clamav configuration files"
         backupConfigs "/etc/clamav/freshclam.conf"
         backupConfigs "/etc/clamav/clamd.conf"
         msg_success "Clamav configuration files backed up successfully."
     fi
-    msg_info "Backing up configuration files..."
+    msg_info "Backing up configuration files"
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
     backupConfigs "/etc/pam.d/sshd"
@@ -73,7 +75,7 @@ function installPackages() {
 }
 
 function secure_ssh() {
-    msg_info "Securing SSH..."
+    msg_info "Securing SSH"
     if [[ -z "$sshPort" ]]; then
         if [[ -n "$defaultSsh" ]]; then
             sshPort="22"
@@ -115,7 +117,7 @@ function secure_ssh() {
 }
 
 function secure_system() {
-    msg_info "Securing System..."
+    msg_info "Securing System"
     echo -e "\nproc     /proc     proc     defaults,hidepid=2     0     0" | tee -a /etc/fstab
     sed -i -r -e "s/^(password\s+requisite\s+pam_pwquality.so)(.*)$/# \1\2 \n\1 retry=3 minlen=10 difok=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1 maxrepeat=3 gecoschec /" /etc/pam.d/common-password
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
@@ -144,14 +146,14 @@ function secure_system() {
     chmod 0600 /etc/ssh/sshd_config
     msg_success "System secured successfully."
     if [[ "$lockRoot" = true ]]; then
-        msg_info "Locking root account..."
+        msg_info "Locking root account"
         passwd -d root
         passwd -l root
         #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
         msg_success "Root account locked successfully."
     fi
     if [[ -n "$withAide" ]]; then
-        msg_info "Initializing AIDE..."
+        msg_info "Initializing AIDE"
         aideinit -y -f
         msg_success "AIDE initialized successfully."
     fi
@@ -159,7 +161,7 @@ function secure_system() {
 }
 
 function secure_firewall() {
-    msg_info "Hardening Firewall..."
+    msg_info "Hardening Firewall"
     ufw logging full
     ufw default deny incoming
     if [[ "$strictFw" = true ]]; then
@@ -181,14 +183,14 @@ function secure_firewall() {
     fi
     msg_success "Configured Firewall successfully."
     if [[ -z "$enableFirewall" ]]; then
-        msg_info "Enabling Firewall..."
+        msg_info "Enabling Firewall"
         ufw --force enable
         msg_info "Firewall enabled."
     fi
 }
 
 function secure_fail2ban() {
-    msg_info "Setting up Fail2ban..."
+    msg_info "Setting up Fail2ban"
     getIni "START_F2B_SSH" "END_F2B_SSH"
     printf "%s" "$output" | tee -a /etc/fail2ban/jail.d/ssh.local
     rm -f /etc/fail2ban/jail.d/defaults-debian.conf
@@ -199,15 +201,15 @@ function secure_fail2ban() {
 }
 
 function secure_updates() {
-    msg_info "Configuring unattended updates..."
-    logToScreen "Setting up unattended upgrades..."
+    msg_info "Configuring unattended updates"
+    logToScreen "Setting up unattended upgrades"
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades
     msg_success "Unattended upgrades configured successfully."
 }
 
 function script_summary() {
-    msg_info "Cleaning up and finalizing..."
+    msg_info "Cleaning up and finalizing"
     apt -y autoremove
     systemctl restart sshd.service
     systemctl restart fail2ban.service
