@@ -104,7 +104,6 @@ function secure_ssh() {
         else
             sshPort=$(shuf -i 28000-40000 -n 1)
         fi
-
     fi
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config >/dev/null 2>&1
