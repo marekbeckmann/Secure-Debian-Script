@@ -56,7 +56,7 @@ function installPackages() {
         msg_ok "Lynis database updated successfully"
         msg_info "Running Lynis audit for base score"
         lynis audit system --quiet --report-file /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
-        base_score="$(grep hardening_index /tmp/systemaudit-report-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
+        base_score="$(grep hardening_index /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${base_score}"
     fi
 
@@ -229,10 +229,12 @@ function script_summary() {
     systemctl restart sshd.service >/dev/null 2>&1
     systemctl restart fail2ban.service >/dev/null 2>&1
     ufw reload >/dev/null 2>&1
-    msg_info "Running Lynis security audit"
-    lynis audit system --quiet --report-file /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
-    new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
-    msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
+    if [[ -n "$auditSystem" ]]; then
+        msg_info "Running Lynis security audit"
+        lynis audit system --quiet --report-file /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
+        new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
+        msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
+    fi
     msg_ok "Script completed successfully."
 
     summary="
