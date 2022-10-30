@@ -40,15 +40,15 @@ function msg_error() {
 
 function installPackages() {
     msg_info "Updating system"
-    apt-get -y -m update
-    apt-get --force-yes -f -m full-upgrade
+    apt-get -qq -o=Dpkg::Use-Pty=0 -y -m update
+    apt-get -qq -o=Dpkg::Use-Pty=0 -y --allow -f -m full-upgrade
     msg_success "System updated successfully"
     msg_info "Installing required packages"
-    apt-get --force-yes -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
+    apt-get -qq -o=Dpkg::Use-Pty=0 -y --allow -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
     msg_success "Packages installed successfully."
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
-        apt-get --force-yes -f -m install aide
+        apt-get -qq -o=Dpkg::Use-Pty=0 -y --allow -f -m install aide
         msg_info "AIDE installed successfully."
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
@@ -57,7 +57,7 @@ function installPackages() {
     fi
     if [[ -n "$withClamav" ]]; then
         msg_info "Installing Clamav"
-        apt-get --force-yes -f -m clamav clamav-freshclam clamav-daemon
+        apt-get -qq -o=Dpkg::Use-Pty=0 -y --allow -f -m clamav clamav-freshclam clamav-daemon
         msg_success "Clamav installed successfully."
         msg_info "Backing up Clamav configuration files"
         backupConfigs "/etc/clamav/freshclam.conf"
