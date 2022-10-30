@@ -44,8 +44,22 @@ function installPackages() {
     apt-get -y full-upgrade >/dev/null 2>&1
     msg_ok "System updated successfully"
     msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix >/dev/null 2>&1
+    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-transport-https ca-certificates host gnupg >/dev/null 2>&1
+    wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key | apt-key add - >/dev/null 2>&1
+    echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
+    apt-get -y update >/dev/null 2>&1
+    apt-get -y install lynis host >/dev/null 2>&1
     msg_ok "Packages installed successfully."
+    if [[ -n "$auditSystem" ]]; then
+        msg_info "Updating Lynis database"
+        lynis update info >/dev/null 2>&1
+        msg_ok "Lynis database updated successfully"
+        msg_info "Running Lynis audit for base score"
+        lynis audit system --quiet --report-file /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
+        base_score="$(grep hardening_index /tmp/systemaudit-report-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
+        msg_ok "Lynis audit completed with a Score of ${base_score}"
+    fi
+
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
         apt-get -y install aide >/dev/null 2>&1
@@ -122,11 +136,14 @@ function secure_system() {
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/5000/100000/g' /etc/login.defs
     sed -i '/PASS_MAX_DAYS/s/99999/180/g' /etc/login.defs
+    sed -i '/PASS_MIN_DAYS/s/0/1/g' /etc/login.defs
     sed -i '/PASS_WARN_AGE/s/7/28/g' /etc/login.defs
     sed -i '/UMASK/s/022/027/g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
     sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide >/dev/null 2>&1
+    echo "HRNGDEVICE=/dev/urandom" | tee -a /etc/default/rng-tools >/dev/null 2>&1
+    systemctl restart rng-tools.service >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf >/dev/null 2>&1
@@ -212,9 +229,14 @@ function script_summary() {
     systemctl restart sshd.service >/dev/null 2>&1
     systemctl restart fail2ban.service >/dev/null 2>&1
     ufw reload >/dev/null 2>&1
+    msg_info "Running Lynis security audit"
+    lynis audit system --quiet --report-file /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
+    new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
+    msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
     msg_ok "Script completed successfully."
 
-    summary="Summary: 
+    summary="
+Summary: 
 SSH-Port: ${sshPort} 
 Allowed SSH Users: ${sshUser}
 Allowed SSH Group: ${sshGroup}
@@ -285,6 +307,9 @@ function get_Params() {
             ;;
         --default-ssh)
             defaultSsh=true
+            ;;
+        --audit-system)
+            auditSystem=true
             ;;
         --*)
             logToScreen "Unknown option $1" --error
