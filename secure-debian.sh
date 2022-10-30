@@ -186,16 +186,21 @@ function secure_firewall() {
     ufw logging full >/dev/null 2>&1
     ufw default deny incoming >/dev/null 2>&1
     if [[ "$strictFw" = true ]]; then
-        ufw default deny outgoing >/dev/null 2>&1
-        ufw allow out 123/udp >/dev/null 2>&1
-        ufw allow out dns >/dev/null 2>&1
-        ufw allow out http >/dev/null 2>&1
-        ufw allow out https >/dev/null 2>&1
-        ufw allow out ftp >/dev/null 2>&1
-        ufw allow out smtp >/dev/null 2>&1
-        ufw allow out smtps >/dev/null 2>&1
-        ufw allow out 'Mail submission' >/dev/null 2>&1
-        ufw allow out ssh >/dev/null 2>&1
+        if [[ $(who am i) =~ \([-a-zA-Z0-9\.]+\)$ ]]; then
+            msg_error "Can't use strict firewall with a remote connection"
+            exit 1
+        else
+            ufw default deny outgoing >/dev/null 2>&1
+            ufw allow out 123/udp >/dev/null 2>&1
+            ufw allow out dns >/dev/null 2>&1
+            ufw allow out http >/dev/null 2>&1
+            ufw allow out https >/dev/null 2>&1
+            ufw allow out ftp >/dev/null 2>&1
+            ufw allow out smtp >/dev/null 2>&1
+            ufw allow out smtps >/dev/null 2>&1
+            ufw allow out 'Mail submission' >/dev/null 2>&1
+            ufw allow out ssh >/dev/null 2>&1
+        fi
     else
         ufw default allow outgoing >/dev/null 2>&1
     fi
