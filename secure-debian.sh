@@ -71,8 +71,8 @@ function installPackages() {
         msg_info "Backing up AIDE configuration files"
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
-        msg_ok "AIDE configuration files backed up successfully (this can take a while)"
-        msg_info "Configuring AIDE"
+        msg_ok "AIDE configuration files backed up successfully"
+        msg_info "Configuring AIDE (this can take a while)"
         sed -i '/#CRON_DAILY_RUN=yes/s/#//g' /etc/default/aide >/dev/null 2>&1
         aideinit -y -f >/dev/null 2>&1
         msg_ok "AIDE configured successfully"
@@ -197,6 +197,10 @@ function secure_firewall() {
         ufw allow out http >/dev/null 2>&1
         ufw allow out https >/dev/null 2>&1
         ufw allow out ftp >/dev/null 2>&1
+        ufw allow out smtp >/dev/null 2>&1
+        ufw allow out smtps >/dev/null 2>&1
+        ufw allow out 'Mail submission' >/dev/null 2>&1
+        ufw allow out ssh >/dev/null 2>&1
     else
         ufw default allow outgoing >/dev/null 2>&1
     fi
@@ -241,7 +245,7 @@ function script_summary() {
     ufw reload >/dev/null 2>&1
     msg_ok "Script completed successfully"
     if [[ -n "$auditSystem" ]]; then
-        msg_info "Running Lynis security audit"
+        msg_info "Running Lynis security audit (this can take a while)"
         lynis audit system --quiet --report-file /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" >/dev/null 2>&1
         new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
