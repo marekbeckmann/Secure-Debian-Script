@@ -152,6 +152,7 @@ function secure_system() {
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf >/dev/null 2>&1
+    echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
     chmod -R 0700 /home/*
     chmod 0644 /etc/passwd
