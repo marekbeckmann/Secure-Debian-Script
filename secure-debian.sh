@@ -1,5 +1,19 @@
 #!/bin/bash
 
+set -euo pipefail
+shopt -s inherit_errexit nullglob
+YW=$(echo "\033[33m")
+BL=$(echo "\033[36m")
+RD=$(echo "\033[01;31m")
+BGN=$(echo "\033[4;92m")
+GN=$(echo "\033[1;92m")
+DGN=$(echo "\033[32m")
+CL=$(echo "\033[m")
+BFR="\\r\\033[K"
+HOLD="-"
+CM="${GN}✓${CL}"
+CROSS="${RD}✗${CL}"
+
 function getIni() {
     startsection="$1"
     endsection="$2"
@@ -10,49 +24,56 @@ function backupConfigs() {
     cp -pr --archive "$1" "$1"-COPY-"$(date +"%m-%d-%Y")"
 }
 
-function logToScreen() {
-    clear
-    if [[ "$2" = "--success" ]]; then
-        printf '%s\n' "$(tput setaf 2)$1 $(tput sgr 0)"
-    elif [[ "$2" = "--error" ]]; then
-        printf '%s\n' "$(tput setaf 1)$1 $(tput sgr 0)"
-        exit 1
-    else
-        printf '%s\n' "$(tput setaf 3)$1 $(tput sgr 0)"
-    fi
-    sleep 1
+function msg_info() {
+    local msg="$1"
+    echo -ne " ${HOLD} ${YW}${msg}..."
+}
+
+function msg_ok() {
+    local msg="$1"
+    echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
+}
+
+function msg_error() {
+    local msg="$1"
+    echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
 }
 
 function installPackages() {
-    logToScreen "Installing Packages..."
-    apt-get -y update
-    apt-get -y full-upgrade
-    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix
+    msg_info "Installing required packages..."
+    apt-get -y -m update >/dev/null 2>&1
+    apt-get --force-yes -f -m full-upgrade >/dev/null 2>&1
+    apt-get --force-yes -f -m install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix >/dev/null 2>&1
+    msg_success "Packages installed successfully."
     if [[ -n "$withAide" ]]; then
-        logToScreen "Installing AIDE..."
-        apt-get -y install aide
-        logToScreen "Backing up configuration files..."
+        msg_info "Installing AIDE..."
+        apt-get --force-yes -f -m install aide >/dev/null 2>&1
+        msg_info "AIDE installed successfully."
+        msg_info "Backing up AIDE configuration files..."
         backupConfigs "/etc/aide"
         backupConfigs "/etc/default/aide"
+        msg_success "AIDE configuration files backed up successfully."
     fi
     if [[ -n "$withClamav" ]]; then
-        logToScreen "Installing Clamav..."
+        msg_info "Installing Clamav..."
         apt-get -y clamav clamav-freshclam clamav-daemon
-        logToScreen "Backing up configuration files..."
+        msg_success "Clamav installed successfully."
+        msg_info "Backing up Clamav configuration files..."
         backupConfigs "/etc/clamav/freshclam.conf"
         backupConfigs "/etc/clamav/clamd.conf"
+        msg_success "Clamav configuration files backed up successfully."
     fi
-    logToScreen "Backing up configuration files..."
+    msg_info "Backing up configuration files..."
     backupConfigs "/etc/fstab"
     backupConfigs "/etc/pam.d/common-password"
     backupConfigs "/etc/pam.d/sshd"
     backupConfigs "/etc/chkrootkit.conf"
     backupConfigs "/etc/ssh/sshd_config"
-
+    msg_success "Configuration files backed up successfully."
 }
 
 function secure_ssh() {
-    logToScreen "Securing SSH..."
+    msg_info "Securing SSH..."
     if [[ -z "$sshPort" ]]; then
         if [[ -n "$defaultSsh" ]]; then
             sshPort="22"
@@ -90,10 +111,11 @@ function secure_ssh() {
     printf "%s" "$output" | tee /etc/issue /etc/issue.net
     echo "" >>/etc/issue
     echo "" >>/etc/issue.net
+    msg_success "SSH secured successfully."
 }
 
 function secure_system() {
-    logToScreen "Securing System..."
+    msg_info "Securing System..."
     echo -e "\nproc     /proc     proc     defaults,hidepid=2     0     0" | tee -a /etc/fstab
     sed -i -r -e "s/^(password\s+requisite\s+pam_pwquality.so)(.*)$/# \1\2 \n\1 retry=3 minlen=10 difok=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1 maxrepeat=3 gecoschec /" /etc/pam.d/common-password
     sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
@@ -120,20 +142,24 @@ function secure_system() {
     chmod -R 0600 /etc/shadow
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
+    msg_success "System secured successfully."
     if [[ "$lockRoot" = true ]]; then
+        msg_info "Locking root account..."
         passwd -d root
         passwd -l root
-        sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
+        #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
+        msg_success "Root account locked successfully."
     fi
     if [[ -n "$withAide" ]]; then
-        logToScreen "Initializing AIDE..."
+        msg_info "Initializing AIDE..."
         aideinit -y -f
+        msg_success "AIDE initialized successfully."
     fi
 
 }
 
 function secure_firewall() {
-    logToScreen "Hardening Firewall..."
+    msg_info "Hardening Firewall..."
     ufw logging full
     ufw default deny incoming
     if [[ "$strictFw" = true ]]; then
@@ -153,31 +179,41 @@ function secure_firewall() {
             ufw allow in "$i"
         done
     fi
+    msg_success "Configured Firewall successfully."
     if [[ -z "$enableFirewall" ]]; then
+        msg_info "Enabling Firewall..."
         ufw --force enable
+        msg_info "Firewall enabled."
     fi
 }
 
 function secure_fail2ban() {
+    msg_info "Setting up Fail2ban..."
     getIni "START_F2B_SSH" "END_F2B_SSH"
     printf "%s" "$output" | tee -a /etc/fail2ban/jail.d/ssh.local
     rm -f /etc/fail2ban/jail.d/defaults-debian.conf
     fail2ban-client start
     fail2ban-client reload
     fail2ban-client add sshd
+    msg_success "Fail2ban configured successfully."
 }
 
 function secure_updates() {
+    msg_info "Configuring unattended updates..."
     logToScreen "Setting up unattended upgrades..."
     getIni "START_UNATTENDED_UPGRADES" "END_UNATTENDED_UPGRADES"
     printf "%s" "$output" | tee /etc/apt/apt.conf.d/51custom-unattended-upgrades
+    msg_success "Unattended upgrades configured successfully."
 }
 
 function script_summary() {
+    msg_info "Cleaning up and finalizing..."
     apt -y autoremove
     systemctl restart sshd.service
     systemctl restart fail2ban.service
     ufw reload
+    msg_success "Script completed successfully."
+
     summary="Summary: 
 SSH-Port: ${sshPort} 
 Allowed SSH Users: ${sshUser}
@@ -188,11 +224,11 @@ Run the following command to conclude setup:
 The Script has finished! To apply all changes, you have to reboot your system 
 Before rebooting, check, that all configurations are correct and that you can connect via SSH. Otherwise, you might lock yourself out of your system 
 Thank you for using my script."
-    logToScreen "$summary" --success
+    printf '%s\n' "$summary"
 }
 
 function helpMsg() {
-    logToScreen "Help for Debian Secure Script (Debian 10/11)
+    printf '%s\n' "Help for Debian Secure Script (Debian 10/11)
 You can use the following Options:
   [-h] => Help Dialog
   [-u] [--allow-sshuser] => Specifies user(s) that are allowed to login via SSH [default=all]
@@ -207,6 +243,7 @@ You can use the following Options:
   [--with-clamav] => Installs and configures ClamAV
   [--default-ssh] => Sets the SSH-Port to 22 (default)
 More Documentation can be found on Github: https://github.com/marekbeckmann/Secure-Debian-Script"
+
 }
 
 function get_Params() {
