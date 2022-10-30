@@ -99,11 +99,7 @@ function installPackages() {
 function secure_ssh() {
     msg_info "Securing SSH"
     if [[ -z "$sshPort" ]]; then
-        if [[ -n "$defaultSsh" ]]; then
-            sshPort="22"
-        else
-            sshPort=$(shuf -i 28000-40000 -n 1)
-        fi
+        sshPort=$(shuf -i 28000-40000 -n 1)
     fi
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config >/dev/null 2>&1
@@ -278,7 +274,7 @@ You can use the following Options:
   [-c] [--config] => Specifies path for the configuration file [defaults to ./configs]
   [--with-aide] => Installs and configures AIDE
   [--with-clamav] => Installs and configures ClamAV
-  [--default-ssh] => Sets the SSH-Port to 22 (default)
+  [--audit-system] => Runs Lynis system audit
 More Documentation can be found on Github: https://github.com/marekbeckmann/Secure-Debian-Script"
 
 }
@@ -319,9 +315,6 @@ function get_Params() {
             ;;
         --with-clamav)
             withClamav=true
-            ;;
-        --default-ssh)
-            defaultSsh=true
             ;;
         --audit-system)
             auditSystem=true
