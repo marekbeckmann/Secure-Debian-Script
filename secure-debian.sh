@@ -42,14 +42,8 @@ function installPackages() {
     msg_info "Updating system"
     apt-get -y update >/dev/null 2>&1
     apt-get -y full-upgrade >/dev/null 2>&1
+    apt-get -y install apt-transport-https ca-certificates host gnupg lsb-release >/dev/null 2>&1
     msg_ok "System updated successfully"
-    msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-transport-https ca-certificates host gnupg >/dev/null 2>&1
-    wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key | apt-key add - >/dev/null 2>&1
-    echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
-    apt-get -y update >/dev/null 2>&1
-    apt-get -y install lynis host >/dev/null 2>&1
-    msg_ok "Packages installed successfully."
     if [[ -n "$auditSystem" ]]; then
         msg_info "Updating Lynis database"
         lynis update info >/dev/null 2>&1
@@ -59,6 +53,14 @@ function installPackages() {
         base_score="$(grep hardening_index /tmp/systemaudit-base-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${base_score}"
     fi
+
+    msg_info "Installing required packages"
+    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools >/dev/null 2>&1
+    wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+    echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
+    apt-get -y update >/dev/null 2>&1
+    apt-get -y install lynis host >/dev/null 2>&1
+    msg_ok "Packages installed successfully."
 
     if [[ -n "$withAide" ]]; then
         msg_info "Installing AIDE"
