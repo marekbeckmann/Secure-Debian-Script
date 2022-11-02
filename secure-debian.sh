@@ -45,7 +45,7 @@ function msg_error() {
 }
 
 function errorhandler() {
-    msg_eror "$1"
+    msg_error "$1"
     exit 1
 }
 
@@ -262,7 +262,7 @@ function secure_updates() {
 function script_summary() {
     msg_info "Cleaning up and finalizing"
     apt -y autoremove >/dev/null 2>&1
-    needrestart -q -r a -m e >/dev/null 2>&1 
+    needrestart -q -r a -m e >/dev/null 2>&1
     obsoleteKernel="$(echo "Y" | needrestart -q -k)"
     obsoleteKernel="$(echo "$obsoleteKernel" | grep "expected")"
     if [[ -n "$obsoleteKernel" ]]; then
@@ -351,7 +351,7 @@ function get_Params() {
             auditSystem=true
             ;;
         --*)
-            msg_eror "Unknown option $1"
+            msg_error "Unknown option $1"
             helpMsg
             exit 1
             ;;
