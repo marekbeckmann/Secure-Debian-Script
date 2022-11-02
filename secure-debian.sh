@@ -12,7 +12,7 @@ BFR="\\r\\033[K"
 HOLD="-"
 CM="${GN}✓${CL}"
 CROSS="${RD}✗${CL}"
-
+WARN="${DGN}⚠${CL}"
 function getIni() {
     startsection="$1"
     endsection="$2"
@@ -33,9 +33,19 @@ function msg_ok() {
     echo -e "${BFR} ${CM} ${GN}${msg}${CL}"
 }
 
+function msg_warn() {
+    local msg="$1"
+    echo -e "${BFR} ${WARN} ${DGN}${msg}${CL}"
+}
+
 function msg_error() {
     local msg="$1"
     echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
+}
+
+function errorhandler() {
+    msg_eror "$1"
+    exit 1
 }
 
 function installPackages() {
@@ -100,7 +110,13 @@ function secure_ssh() {
     msg_info "Securing SSH"
     if [[ -z "$sshPort" ]]; then
         sshPort=$(shuf -i 28000-40000 -n 1)
+    elif [[ "$sshPort" -lt 1024 ]] || [[ "$sshPort" -gt 65535 ]]; then
+        msg_warn "Invalid SSH port, using random port"
+        sshPort=$(shuf -i 28000-40000 -n 1)
+    elif [[ "$sshPort" -eq 22 ]]; then
+        msg_warn "SSH port is set to 22 (default)"
     fi
+
     getIni "START_SSHD" "END_SSHD"
     printf "%s" "$output" | tee /etc/ssh/sshd_config >/dev/null 2>&1
     dos2unix /etc/ssh/sshd_config >/dev/null 2>&1
@@ -110,15 +126,18 @@ function secure_ssh() {
         IFS=',' read -ra ADDR <<<"$sshUser"
         for i in "${ADDR[@]}"; do
             sed -i "/^AllowUsers/ s/$/ ${i}/" /etc/ssh/sshd_config
+            msg_ok "SSH user ${i} added to allowed users"
         done
     else
         sed -i "s/AllowUsers/#AllowUsers yourUser/g" /etc/ssh/sshd_config
+        msg_warn "No SSH users specified, allowing all users to login"
     fi
 
     if [[ -n "$sshGroup" ]]; then
         IFS=',' read -ra ADDR <<<"$sshGroup"
         for i in "${ADDR[@]}"; do
             sed -i "/^AllowGroups/ s/$/ ${i}/" /etc/ssh/sshd_config
+            msg_ok "SSH group ${i} added to allowed groups"
         done
     else
         sed -i "s/AllowGroups/#AllowGroups yourGroup/g" /etc/ssh/sshd_config
@@ -128,10 +147,7 @@ function secure_ssh() {
     systemctl restart sshd.service >/dev/null 2>&1
     getIni "START_DEFBANNER" "END_DEFBANNER"
     printf "%s" "$output" | tee /etc/issue /etc/issue.net >/dev/null 2>&1
-    echo "
-    " >>/etc/issue >/dev/null 2>&1
-    echo "
-    " >>/etc/issue.net >/dev/null 2>&1
+    echo -en '\n' | tee -a /etc/issue /etc/issue.net >/dev/null 2>&1
     msg_ok "SSH secured successfully"
 }
 
@@ -173,6 +189,8 @@ function secure_system() {
         passwd -l root >/dev/null 2>&1
         #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
         msg_ok "Root account locked successfully"
+    else
+        msg_warn "Root account not locked"
     fi
     if [[ -n "$withAide" ]]; then
         msg_info "Initializing AIDE"
@@ -217,6 +235,8 @@ function secure_firewall() {
         msg_info "Enabling Firewall"
         ufw --force enable >/dev/null 2>&1
         msg_info "Firewall enabled."
+    else
+        msg_warn "Firewall not enabled"
     fi
 }
 
@@ -326,12 +346,12 @@ function get_Params() {
             auditSystem=true
             ;;
         --*)
-            logToScreen "Unknown option $1" --error
+            msg_eror "Unknown option $1"
             helpMsg
             exit 1
             ;;
         -*)
-            logToScreen "Unknown option $1" --error
+            msg_error "Unknown option $1"
             helpMsg
             exit 1
             ;;
@@ -345,7 +365,7 @@ function script_init() {
     if [[ -z "$configFile" ]]; then
         configFile="config.ini"
     fi
-    if [ "$(whoami)" = "root" ]; then
+    if [ "$EUID" = 0 ]; then
         if [[ -f "$configFile" ]]; then
             installPackages
             secure_system
@@ -355,10 +375,10 @@ function script_init() {
             secure_updates
             script_summary
         else
-            logToScreen "Configuration file couldn't be found. Please download \"configs\" from the Git repository, and place it in the same directory as the Script." --error
+            errorhandler "Configuration file couldn't be found. Please provide \"config.ini\""
         fi
     else
-        echo "You need root prvileges to run this script!"
+        errorhandler "You need root prvileges to run this script!"
     fi
 }
 
