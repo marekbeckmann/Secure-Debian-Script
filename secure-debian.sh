@@ -13,6 +13,7 @@ HOLD="-"
 CM="${GN}✓${CL}"
 CROSS="${RD}✗${CL}"
 WARN="${DGN}⚠${CL}"
+
 function getIni() {
     startsection="$1"
     endsection="$2"
@@ -261,8 +262,12 @@ function secure_updates() {
 function script_summary() {
     msg_info "Cleaning up and finalizing"
     apt -y autoremove >/dev/null 2>&1
-    systemctl restart sshd.service >/dev/null 2>&1
-    systemctl restart fail2ban.service >/dev/null 2>&1
+    needrestart -q -r a -m e >/dev/null 2>&1 
+    obsoleteKernel="$(echo "Y" | needrestart -q -k)"
+    obsoleteKernel="$(echo "$obsoleteKernel" | grep "expected")"
+    if [[ -n "$obsoleteKernel" ]]; then
+        msg_warn "${obsoleteKernel}"
+    fi
     ufw reload >/dev/null 2>&1
     msg_ok "Script completed successfully"
     if [[ -n "$auditSystem" ]]; then
@@ -271,7 +276,7 @@ function script_summary() {
         new_score="$(grep hardening_index /tmp/systemaudit-new-"$(date +"%m-%d-%Y")" | cut -d"=" -f2)" >/dev/null 2>&1
         msg_ok "Lynis audit completed with a Score of ${new_score}. Old Score: ${base_score}"
     fi
-
+    unset DEBIAN_FRONTEND
     summary="
 Summary: 
 SSH-Port: ${sshPort} 
@@ -361,6 +366,7 @@ function get_Params() {
 }
 
 function script_init() {
+    export DEBIAN_FRONTEND=noninteractive
     get_Params "$@"
     if [[ -z "$configFile" ]]; then
         configFile="config.ini"
