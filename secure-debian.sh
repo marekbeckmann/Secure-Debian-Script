@@ -110,7 +110,7 @@ function secure_ssh() {
     msg_info "Securing SSH"
     if [[ -z "$sshPort" ]]; then
         sshPort=$(shuf -i 28000-40000 -n 1)
-    elif [[ "$sshPort" -lt 1024 ]] || [[ "$sshPort" -gt 65535 ]]; then
+    elif [[ "$sshPort" -gt 65535 ]]; then
         msg_warn "Invalid SSH port, using random port"
         sshPort=$(shuf -i 28000-40000 -n 1)
     elif [[ "$sshPort" -eq 22 ]]; then
