@@ -266,7 +266,7 @@ function script_summary() {
     obsoleteKernel="$(echo "Y" | needrestart -q -k)"
     obsoleteKernel="$(echo "$obsoleteKernel" | grep "expected")"
     if [[ -n "$obsoleteKernel" ]]; then
-        msg_warn "${obsoleteKernel}"
+        msg_warn "Running kernel $(uname -r) is obsolete, please reboot to update"
     fi
     ufw reload >/dev/null 2>&1
     msg_ok "Script completed successfully"
