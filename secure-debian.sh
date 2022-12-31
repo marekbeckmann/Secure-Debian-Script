@@ -263,8 +263,6 @@ function secure_system() {
     chmod 0600 /etc/ssh/sshd_config
     chmod 0750 /usr/bin/w
     chmod 0750 /usr/bin/who
-    chmod 0750 /usr/bin/locate
-    chmod 0750 /usr/bin/whereis
     chmod 0700 /etc/sysctl.conf
     chmod 644 /etc/motd
     depmod -ae >/dev/null 2>&1
