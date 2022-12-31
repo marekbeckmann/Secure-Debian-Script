@@ -171,16 +171,68 @@ function secure_system() {
     # Kernel hardening
     echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf >/dev/null 2>&1
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.d/50-kernel-restrict.conf >/dev/null 2>&1
-    echo "kernel.kptr_restrict = 1" >/etc/sysctl.d/50-kptr-restrict.conf
-    echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf
-    echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf
+    echo "kernel.kptr_restrict = 1" >/etc/sysctl.d/50-kptr-restrict.conf >/dev/null 2>&1
+    echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf >/dev/null 2>&1
+    echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf >/dev/null 2>&1
     # Network hardening
     echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
     echo 'net.ipv4.tcp_syncookies = 1' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
     echo "net.ipv4.conf.all.accept_source_route = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
     echo "net.ipv4.conf.all.accept_redirects = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
     echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    # FS hardening
+    echo "fs.protected_hardlinks = 1" >/etc/sysctl.d/50-fs-hardening.conf >/dev/null 2>&1
+    echo "fs.protected_symlinks = 1" >>/etc/sysctl.d/50-fs-hardening.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
+    # Disable uncommon filesystems
+    echo "install cramfs /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install freevxfs /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install jffs2 /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfs /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfsplus /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install squashfs /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install udf /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install fat /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install vfat /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install gfs2 /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfs /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfsv3 /bin/false" >>/etc/modprobe.d/uncommon-fs.conf
+    # Disable uncommon network protocols
+    echo "install dccp /bin/false" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install sctp /bin/false" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install rds /bin/false" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install tipc /bin/false" >>/etc/modprobe.d/uncommon-net.conf
+    # Disable Firewire
+    echo "install firewire-core /bin/false" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-ohci /bin/false" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-sbp2 /bin/false" >>/etc/modprobe.d/firewire.conf
+    # Disable Bluetooth
+    echo "install bluetooth /bin/false" >>/etc/modprobe.d/bluetooth.conf
+    # Disable uncommon sound drivers
+    echo "install snd-usb-audio /bin/false" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-caiaq /bin/false" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-us122l /bin/false" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-usx2y /bin/false" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-audio /bin/false" >>/etc/modprobe.d/uncommon-sound.conf
+    # Disable uncommon input drivers
+    echo "install joydev /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install pcspkr /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install serio_raw /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-rawmidi /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-midi /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-oss /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-device /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-timer /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd /bin/false" >>/etc/modprobe.d/uncommon-input.conf
+    # Harden system services
+    systemctl mask avahi-daemon.service
+    systemctl mask bluetooth.service
+    systemctl mask cups.service
+    systemctl mask cups.socket
+    systemctl mask hidd.service
+    systemctl mask hplip.service
+    systemctl mask hplip.socket
     # File permissions
     chown root:root /etc/grub.conf
     chown -R root:root /etc/grub.d
