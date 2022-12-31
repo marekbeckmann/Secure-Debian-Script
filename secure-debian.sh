@@ -168,9 +168,25 @@ function secure_system() {
     systemctl restart rng-tools.service >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
-    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf >/dev/null 2>&1
-    echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.conf >/dev/null 2>&1
+    # Kernel hardening
+    echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf >/dev/null 2>&1
+    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.d/50-kernel-restrict.conf >/dev/null 2>&1
+    echo "kernel.kptr_restrict = 1" >/etc/sysctl.d/50-kptr-restrict.conf
+    echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf
+    echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf
+    # Network hardening
+    echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo 'net.ipv4.tcp_syncookies = 1' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.accept_source_route = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.accept_redirects = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
+    # File permissions
+    chown root:root /etc/grub.conf
+    chown -R root:root /etc/grub.d
+    chmod og-rwx /etc/grub.conf
+    chmod og-rwx /etc/grub.conf
+    chmod -R og-rwx /etc/grub.d
     chmod -R 0700 /home/*
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
@@ -183,6 +199,11 @@ function secure_system() {
     chmod -R 0600 /etc/shadow
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
+    chmod 0750 /usr/bin/w
+    chmod 0750 /usr/bin/who
+    chmod 0750 /usr/bin/locate
+    chmod 0750 /usr/bin/whereis
+    chmod 0700 /etc/sysctl.conf
     msg_ok "System secured successfully"
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
