@@ -225,20 +225,12 @@ function secure_system() {
     echo "install snd-seq-device /bin/false" >>/etc/modprobe.d/uncommon-input.conf
     echo "install snd-timer /bin/false" >>/etc/modprobe.d/uncommon-input.conf
     echo "install snd /bin/false" >>/etc/modprobe.d/uncommon-input.conf
-    # Harden system services
-    systemctl mask avahi-daemon.service
-    systemctl mask bluetooth.service
-    systemctl mask cups.service
-    systemctl mask cups.socket
-    systemctl mask hidd.service
-    systemctl mask hplip.service
-    systemctl mask hplip.socket
     # File permissions
-    chown root:root /etc/grub.conf
-    chown -R root:root /etc/grub.d
-    chmod og-rwx /etc/grub.conf
-    chmod og-rwx /etc/grub.conf
-    chmod -R og-rwx /etc/grub.d
+    chown root:root /etc/grub.conf >/dev/null 2>&1
+    chown -R root:root /etc/grub.d >/dev/null 2>&1
+    chmod og-rwx /etc/grub.conf >/dev/null 2>&1
+    chmod og-rwx /etc/grub.conf >/dev/null 2>&1
+    chmod -R og-rwx /etc/grub.d >/dev/null 2>&1
     chmod -R 0700 /home/*
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
