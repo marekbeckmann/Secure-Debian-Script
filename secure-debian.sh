@@ -57,7 +57,7 @@ function installPackages() {
     msg_ok "System updated successfully"
     if [[ -n "$auditSystem" ]]; then
         msg_info "Installing Lynis"
-        wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+        wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key | apt-key add - >/dev/null 2>&1
         echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
         apt-get -y update >/dev/null 2>&1
         apt-get -y install lynis host >/dev/null 2>&1
@@ -198,46 +198,46 @@ function secure_system() {
     echo "fs.protected_symlinks = 1" >>/etc/sysctl.d/50-fs-hardening.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
     # Disable uncommon filesystems
-    echo "blacklist cramfs " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist freevxfs " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist jffs2 " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist hfs " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist hfsplus " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist squashfs " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist udf " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist fat " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist vfat " >>/etc/modprobe.d/uncommon-fs.conf
-    echo "blacklist gfs2 " >>/etc/modprobe.d/uncommon-fs.conf
-    #echo "blacklist nfs " >>/etc/modprobe.d/uncommon-fs.conf
-    #echo "blacklist nfsv3 " >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install cramfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install freevxfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install jffs2 /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfsplus /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install squashfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install udf /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install fat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install vfat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install gfs2 /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfs " >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfsv3 " >>/etc/modprobe.d/uncommon-fs.conf
     # Disable uncommon network protocols
-    echo "blacklist dccp " >>/etc/modprobe.d/uncommon-net.conf
-    echo "blacklist sctp " >>/etc/modprobe.d/uncommon-net.conf
-    echo "blacklist rds " >>/etc/modprobe.d/uncommon-net.conf
-    echo "blacklist tipc " >>/etc/modprobe.d/uncommon-net.conf
+    echo "install dccp /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install sctp /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install rds /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install tipc /bin/true" >>/etc/modprobe.d/uncommon-net.conf
     # Disable Firewire
-    echo "blacklist firewire-core " >>/etc/modprobe.d/firewire.conf
-    echo "blacklist firewire-ohci " >>/etc/modprobe.d/firewire.conf
-    echo "blacklist firewire-sbp2 " >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-core /bin/true" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-ohci /bin/true" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-sbp2 /bin/true" >>/etc/modprobe.d/firewire.conf
     # Disable Bluetooth
-    echo "blacklist bluetooth " >>/etc/modprobe.d/bluetooth.conf
+    echo "install bluetooth " >>/etc/modprobe.d/bluetooth.conf
     # Disable uncommon sound drivers
-    echo "blacklist snd-usb-audio " >>/etc/modprobe.d/uncommon-sound.conf
-    echo "blacklist snd-usb-caiaq " >>/etc/modprobe.d/uncommon-sound.conf
-    echo "blacklist snd-usb-us122l " >>/etc/modprobe.d/uncommon-sound.conf
-    echo "blacklist snd-usb-usx2y " >>/etc/modprobe.d/uncommon-sound.conf
-    echo "blacklist snd-usb-audio " >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-audio /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-caiaq /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-us122l /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-usx2y /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-audio /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
     # Disable uncommon input drivers
-    echo "blacklist joydev " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist pcspkr " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist serio_raw " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-rawmidi " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-seq-midi " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-seq-oss " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-seq " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-seq-device " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd-timer " >>/etc/modprobe.d/uncommon-input.conf
-    echo "blacklist snd " >>/etc/modprobe.d/uncommon-input.conf
+    echo "install joydev /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install pcspkr /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install serio_raw /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-rawmidi /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-midi /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-oss /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-device /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-timer /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd /bin/true" >>/etc/modprobe.d/uncommon-input.conf
     # File permissions
     chown root:root /etc/grub.conf >/dev/null 2>&1
     chown -R root:root /etc/grub.d >/dev/null 2>&1
@@ -266,7 +266,7 @@ function secure_system() {
     chmod 0700 /etc/sysctl.conf
     chmod 644 /etc/motd
     depmod -ae >/dev/null 2>&1
-    update-initramfs -u >/dev/null 2>&1    
+    update-initramfs -u >/dev/null 2>&1
     msg_ok "System secured successfully"
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
@@ -346,6 +346,7 @@ function secure_updates() {
 function script_summary() {
     msg_info "Cleaning up and finalizing"
     apt -y autoremove >/dev/null 2>&1
+    apt -y autoclean >/dev/null 2>&1
     needrestart -q -r a -m e >/dev/null 2>&1
     obsoleteKernel="$(echo "Y" | needrestart -q -k)"
     obsoleteKernel="$(echo "$obsoleteKernel" | grep "expected")"
