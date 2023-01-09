@@ -57,7 +57,7 @@ function installPackages() {
     msg_ok "System updated successfully"
     if [[ -n "$auditSystem" ]]; then
         msg_info "Installing Lynis"
-        wget -O - https://packages.cisofy.com/keys/cisofy-software-public.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+        curl -s https://packages.cisofy.com/keys/cisofy-software-public.key | apt-key add - >/dev/null 2>&1
         echo "deb https://packages.cisofy.com/community/lynis/deb/ stable main" | tee /etc/apt/sources.list.d/cisofy-lynis.list >/dev/null 2>&1
         apt-get -y update >/dev/null 2>&1
         apt-get -y install lynis host >/dev/null 2>&1
