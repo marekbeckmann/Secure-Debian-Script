@@ -72,7 +72,7 @@ function installPackages() {
     fi
 
     msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
+    apt-get -y install libpam-google-authenticator ufw fail2ban rsyslog chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
     msg_ok "Packages installed successfully"
 
     if [[ -n "$withAide" ]]; then
@@ -238,6 +238,9 @@ function secure_system() {
     echo "install snd-seq-device /bin/true" >>/etc/modprobe.d/uncommon-input.conf
     echo "install snd-timer /bin/true" >>/etc/modprobe.d/uncommon-input.conf
     echo "install snd /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    # Remove telnet
+    apt-get -y --purge remove telnet nis ntpdate >/dev/null 2>&1
+
     # File permissions
     chown root:root /etc/grub.conf >/dev/null 2>&1
     chown -R root:root /etc/grub.d >/dev/null 2>&1
@@ -265,6 +268,7 @@ function secure_system() {
     chmod 0750 /usr/bin/who
     chmod 0700 /etc/sysctl.conf
     chmod 644 /etc/motd
+    chmod 0600 /boot/System.map-* >/dev/null 2>&1
     depmod -ae >/dev/null 2>&1
     update-initramfs -u >/dev/null 2>&1
     msg_ok "System secured successfully"
