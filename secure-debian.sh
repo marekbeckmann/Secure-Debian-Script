@@ -156,8 +156,8 @@ function secure_system() {
     msg_info "Securing System"
     echo -e "\nproc     /proc     proc     defaults,hidepid=2     0     0" | tee -a /etc/fstab >/dev/null 2>&1
     sed -i -r -e "s/^(password\s+requisite\s+pam_pwquality.so)(.*)$/# \1\2 \n\1 retry=3 minlen=10 difok=3 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1 maxrepeat=3 gecoschec /" /etc/pam.d/common-password
-    sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/100000/g' /etc/login.defs
-    sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/5000/100000/g' /etc/login.defs
+    sed -i '/# SHA_CRYPT_MAX_ROUNDS/s/5000/1000000/g' /etc/login.defs
+    sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/5000/1000000/g' /etc/login.defs
     sed -i '/PASS_MAX_DAYS/s/99999/180/g' /etc/login.defs
     sed -i '/PASS_MIN_DAYS/s/0/1/g' /etc/login.defs
     sed -i '/PASS_WARN_AGE/s/7/28/g' /etc/login.defs
@@ -168,9 +168,86 @@ function secure_system() {
     systemctl restart rng-tools.service >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
-    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.conf >/dev/null 2>&1
-    echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.conf >/dev/null 2>&1
+    # Kernel hardening
+    echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf >/dev/null 2>&1
+    echo 'fs.suid_dumpable = 0' >>/etc/sysctl.d/50-kernel-restrict.conf >/dev/null 2>&1
+    echo "kernel.kptr_restrict = 1" >/etc/sysctl.d/50-kptr-restrict.conf >/dev/null 2>&1
+    echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf >/dev/null 2>&1
+    echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf >/dev/null 2>&1
+    echo "dev.tty.ldisc_autoload = 0" >/etc/sysctl.d/50-ldisc-autoload.conf >/dev/null 2>&1
+    echo "kernel.core_uses_pid = 1" >/etc/sysctl.d/50-core-uses-pid.conf >/dev/null 2>&1
+    echo "kernel.kptr_restrict = 2" >/etc/sysctl.d/50-kptr-restrict.conf >/dev/null 2>&1
+    echo "kernel.modules_disabled = 1" >/etc/sysctl.d/50-modules-disabled.conf >/dev/null 2>&1
+    echo "kernel.sysrq = 0" >/etc/sysctl.d/50-sysrq.conf >/dev/null 2>&1
+    echo "kernel.unprivileged_bpf_disabled = 1" >/etc/sysctl.d/50-unprivileged-bpf.conf >/dev/null 2>&1
+    echo "kernel.yama.ptrace_scope = 1" >/etc/sysctl.d/50-ptrace-scope.conf >/dev/null 2>&1
+    echo "net.core.bpf_jit_harden = 2" >/etc/sysctl.d/50-bpf-jit-harden.conf >/dev/null 2>&1
+    # Network hardening
+    echo 'net.ipv4.tcp_timestamps = 0' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo 'net.ipv4.tcp_syncookies = 1' >>/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.accept_source_route = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.accept_redirects = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.log_martians = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.rp_filter = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.all.send_redirects = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.default.accept_source_route = 0" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    echo "net.ipv4.conf.default.log_martians = 1" >/etc/sysctl.d/50-net-stack.conf >/dev/null 2>&1
+    # FS hardening
+    echo "fs.protected_hardlinks = 1" >/etc/sysctl.d/50-fs-hardening.conf >/dev/null 2>&1
+    echo "fs.protected_symlinks = 1" >>/etc/sysctl.d/50-fs-hardening.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
+    # Disable uncommon filesystems
+    echo "install cramfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install freevxfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install jffs2 /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install hfsplus /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install squashfs /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install udf /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install fat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install vfat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    echo "install gfs2 /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfs " >>/etc/modprobe.d/uncommon-fs.conf
+    #echo "install nfsv3 " >>/etc/modprobe.d/uncommon-fs.conf
+    # Disable uncommon network protocols
+    echo "install dccp /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install sctp /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install rds /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    echo "install tipc /bin/true" >>/etc/modprobe.d/uncommon-net.conf
+    # Disable Firewire
+    echo "install firewire-core /bin/true" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-ohci /bin/true" >>/etc/modprobe.d/firewire.conf
+    echo "install firewire-sbp2 /bin/true" >>/etc/modprobe.d/firewire.conf
+    # Disable Bluetooth
+    echo "install bluetooth " >>/etc/modprobe.d/bluetooth.conf
+    # Disable uncommon sound drivers
+    echo "install snd-usb-audio /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-caiaq /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-us122l /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-usx2y /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    echo "install snd-usb-audio /bin/true" >>/etc/modprobe.d/uncommon-sound.conf
+    # Disable uncommon input drivers
+    echo "install joydev /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install pcspkr /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install serio_raw /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-rawmidi /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-midi /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-oss /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-seq-device /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd-timer /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    echo "install snd /bin/true" >>/etc/modprobe.d/uncommon-input.conf
+    # File permissions
+    chown root:root /etc/grub.conf >/dev/null 2>&1
+    chown -R root:root /etc/grub.d >/dev/null 2>&1
+    chmod og-rwx /etc/grub.conf >/dev/null 2>&1
+    chmod og-rwx /etc/grub.conf >/dev/null 2>&1
+    chmod -R og-rwx /etc/grub.d >/dev/null 2>&1
+    chown root:root /boot/grub2/grub.cfg >/dev/null 2>&1
+    chmod og-rwx /boot/grub2/grub.cfg >/dev/null 2>&1
+    chown root:root /boot/grub/grub.cfg >/dev/null 2>&1
+    chmod og-rwx /boot/grub/grub.cfg >/dev/null 2>&1
     chmod -R 0700 /home/*
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
@@ -181,8 +258,15 @@ function secure_system() {
     chmod -R 0600 /etc/cron.d
     chmod -R 0600 /etc/crontab
     chmod -R 0600 /etc/shadow
+    chmod 750 /etc/sudoers.d
     chmod -R 0440 /etc/sudoers.d/*
     chmod 0600 /etc/ssh/sshd_config
+    chmod 0750 /usr/bin/w
+    chmod 0750 /usr/bin/who
+    chmod 0700 /etc/sysctl.conf
+    chmod 644 /etc/motd
+    depmod -ae >/dev/null 2>&1
+    update-initramfs -u >/dev/null 2>&1
     msg_ok "System secured successfully"
     if [[ "$lockRoot" = true ]]; then
         msg_info "Locking root account"
@@ -262,6 +346,7 @@ function secure_updates() {
 function script_summary() {
     msg_info "Cleaning up and finalizing"
     apt -y autoremove >/dev/null 2>&1
+    apt -y autoclean >/dev/null 2>&1
     needrestart -q -r a -m e >/dev/null 2>&1
     obsoleteKernel="$(echo "Y" | needrestart -q -k)"
     obsoleteKernel="$(echo "$obsoleteKernel" | grep "expected")"
