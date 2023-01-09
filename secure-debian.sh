@@ -72,7 +72,7 @@ function installPackages() {
     fi
 
     msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban rsyslog chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
+    apt-get -y install libpam-google-authenticator ufw fail2ban auditd audispd-plugins rsyslog chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
     msg_ok "Packages installed successfully"
 
     if [[ -n "$withAide" ]]; then
@@ -166,15 +166,18 @@ function secure_system() {
     sed -i '/# SHA_CRYPT_MIN_ROUNDS/s/#//g' /etc/login.defs
     echo "HRNGDEVICE=/dev/urandom" | tee -a /etc/default/rng-tools >/dev/null 2>&1
     systemctl restart rng-tools.service >/dev/null 2>&1
+    systemctl enable rng-tools.service >/dev/null 2>&1
+    systemctl restart auditd >/dev/null 2>&1
+    systemctl enable auditd >/dev/null 2>&1
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
     # Kernel hardening
     echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf >/dev/null 2>&1
     echo 'fs.suid_dumpable = 0' >>/etc/sysctl.d/50-kernel-restrict.conf >/dev/null 2>&1
-    echo "kernel.kptr_restrict = 1" >/etc/sysctl.d/50-kptr-restrict.conf >/dev/null 2>&1
     echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf >/dev/null 2>&1
     echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf >/dev/null 2>&1
     echo "dev.tty.ldisc_autoload = 0" >/etc/sysctl.d/50-ldisc-autoload.conf >/dev/null 2>&1
+    echo "fs.protected_fifos = 2" >/etc/sysctl.d/50-protected-fifos.conf >/dev/null 2>&1
     echo "kernel.core_uses_pid = 1" >/etc/sysctl.d/50-core-uses-pid.conf >/dev/null 2>&1
     echo "kernel.kptr_restrict = 2" >/etc/sysctl.d/50-kptr-restrict.conf >/dev/null 2>&1
     echo "kernel.modules_disabled = 1" >/etc/sysctl.d/50-modules-disabled.conf >/dev/null 2>&1
