@@ -12,6 +12,7 @@
   * Debsums
   * AIDE File system integrity (optional)
   * Clamav Anti-Virus (optional)
+  * Lynis System Audit (optional)
 
 
 ## This Script will configure the following settings/configurations
@@ -25,8 +26,14 @@
   * Configure default UMASK in `/etc/login.defs`
   * Configure Core Dump in `/etc/security/limits.conf` and `/etc/sysctl.conf`
   * Configure permissions for various sensitive files
-  * Add disclaimers to `/etc/ssh/banner`, `/etc/issue` and `/etc/issue.net`
+  * Add disclaimers to `/etc/issue` and `/etc/issue.net`
   * Configure Unattended Upgrades in `/etc/apt/apt.conf.d/51custom-unattended-upgrades`
+  * Configure various kernel settings in `/etc/sysctl.conf` and `/etc/sysctl.d/`
+  * Blacklist various kernel modules in `/etc/modprobe.d/`
+
+## What this script doesn't do
+
+Please note, that this script does not check for running webservers, mailservers etc. and therefore does not attempt to secure them. It is intended to secure the system itself, as well as the SSH connection. If you want to secure your webserver, you should consult the documentation of the software you are using.
 
 # How to use
 
