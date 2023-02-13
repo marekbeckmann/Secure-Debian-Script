@@ -72,7 +72,7 @@ function installPackages() {
     fi
 
     msg_info "Installing required packages"
-    apt-get -y install libpam-google-authenticator ufw fail2ban auditd audispd-plugins rsyslog chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools apt-listbugs needrestart debsecan >/dev/null 2>&1
+    apt-get -y install libpam-google-authenticator ufw fail2ban auditd audispd-plugins rsyslog chkrootkit libpam-pwquality curl unattended-upgrades apt-listchanges apticron debsums apt-show-versions dos2unix rng-tools needrestart debsecan >/dev/null 2>&1
     msg_ok "Packages installed successfully"
 
     if [[ -n "$withAide" ]]; then
@@ -294,6 +294,11 @@ function secure_system() {
 
 function secure_firewall() {
     msg_info "Hardening Firewall"
+    listening_ports=$(netstat -tulpn | grep LISTEN | awk '{print $4}' | cut -d: -f2 | sort -n | uniq)
+    for port in $listening_ports; do
+        listening_ports_string="${listening_ports_string},${port}"
+    done
+    msg_warn "The following ports are listening: ${listening_ports_string:1}"
     ufw logging full >/dev/null 2>&1
     ufw default deny incoming >/dev/null 2>&1
     if [[ "$strictFw" = true ]]; then
