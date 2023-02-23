@@ -172,35 +172,32 @@ function secure_system() {
     getIni "START_COREDUMP" "END_COREDUMP"
     printf "%s" "$output" | tee -a /etc/security/limits.conf >/dev/null 2>&1
     # Kernel hardening
-    #echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf 2>/dev/null
+    echo "kernel.dmesg_restrict = 1" >/etc/sysctl.d/50-dmesg-restrict.conf 2>/dev/null
     echo 'fs.suid_dumpable = 0' >/etc/sysctl.d/50-kernel-restrict.conf 2>/dev/null
-    
-    #echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf 2>/dev/null
-    #echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf 2>/dev/null
-    #echo "dev.tty.ldisc_autoload = 0" >/etc/sysctl.d/50-ldisc-autoload.conf 2>/dev/null
-    #echo "fs.protected_fifos = 2" >/etc/sysctl.d/50-protected-fifos.conf 2>/dev/null
-    #echo "kernel.core_uses_pid = 1" >/etc/sysctl.d/50-core-uses-pid.conf 2>/dev/null
-    #echo "kernel.kptr_restrict = 2" >/etc/sysctl.d/50-kptr-restrict.conf 2>/dev/null
-    #echo "kernel.modules_disabled = 1" >/etc/sysctl.d/50-modules-disabled.conf 2>/dev/null
-    #echo "kernel.sysrq = 0" >/etc/sysctl.d/50-sysrq.conf 2>/dev/null
-    #echo "kernel.unprivileged_bpf_disabled = 1" >/etc/sysctl.d/50-unprivileged-bpf.conf 2>/dev/null
-    #echo "kernel.yama.ptrace_scope = 1" >/etc/sysctl.d/50-ptrace-scope.conf 2>/dev/null
-    #echo "net.core.bpf_jit_harden = 2" >/etc/sysctl.d/50-bpf-jit-harden.conf 2>/dev/null
-    
+    echo "kernel.exec-shield = 2" >/etc/sysctl.d/50-exec-shield.conf 2>/dev/null
+    echo "kernel.randomize_va_space=2" >/etc/sysctl.d/50-rand-va-space.conf 2>/dev/null
+    echo "dev.tty.ldisc_autoload = 0" >/etc/sysctl.d/50-ldisc-autoload.conf 2>/dev/null
+    echo "fs.protected_fifos = 2" >/etc/sysctl.d/50-protected-fifos.conf 2>/dev/null
+    echo "kernel.core_uses_pid = 1" >/etc/sysctl.d/50-core-uses-pid.conf 2>/dev/null
+    echo "kernel.kptr_restrict = 2" >/etc/sysctl.d/50-kptr-restrict.conf 2>/dev/null
+    echo "kernel.sysrq = 0" >/etc/sysctl.d/50-sysrq.conf 2>/dev/null
+    echo "kernel.unprivileged_bpf_disabled = 1" >/etc/sysctl.d/50-unprivileged-bpf.conf 2>/dev/null
+    echo "kernel.yama.ptrace_scope = 1" >/etc/sysctl.d/50-ptrace-scope.conf 2>/dev/null
+    echo "net.core.bpf_jit_harden = 2" >/etc/sysctl.d/50-bpf-jit-harden.conf 2>/dev/null
     # Network hardening
     echo 'net.ipv4.tcp_timestamps = 0' >/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo 'net.ipv4.tcp_syncookies = 1' >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.all.accept_source_route = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.all.accept_redirects = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.all.log_martians = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.all.rp_filter = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.all.send_redirects = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.default.accept_source_route = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
-    #echo "net.ipv4.conf.default.log_martians = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo 'net.ipv4.tcp_syncookies = 1' >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.all.accept_source_route = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.all.accept_redirects = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.all.log_martians = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.all.rp_filter = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.all.send_redirects = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.default.accept_source_route = 0" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
+    echo "net.ipv4.conf.default.log_martians = 1" >>/etc/sysctl.d/50-net-stack.conf 2>/dev/null
     # FS hardening
-    #echo "fs.protected_hardlinks = 1" >/etc/sysctl.d/50-fs-hardening.conf 2>/dev/null
-    #echo "fs.protected_symlinks = 1" >>/etc/sysctl.d/50-fs-hardening.conf 2>/dev/null
+    echo "fs.protected_hardlinks = 1" >/etc/sysctl.d/50-fs-hardening.conf 2>/dev/null
+    echo "fs.protected_symlinks = 1" >>/etc/sysctl.d/50-fs-hardening.conf 2>/dev/null
     sysctl -p >/dev/null 2>&1
     # Disable uncommon filesystems
     echo "install cramfs /bin/true" >/etc/modprobe.d/uncommon-fs.conf
@@ -213,8 +210,6 @@ function secure_system() {
     echo "install fat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
     echo "install vfat /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
     echo "install gfs2 /bin/true" >>/etc/modprobe.d/uncommon-fs.conf
-    #echo "install nfs " >>/etc/modprobe.d/uncommon-fs.conf
-    #echo "install nfsv3 " >>/etc/modprobe.d/uncommon-fs.conf
     # Disable uncommon network protocols
     echo "install dccp /bin/true" >/etc/modprobe.d/uncommon-net.conf
     echo "install sctp /bin/true" >>/etc/modprobe.d/uncommon-net.conf
@@ -245,7 +240,6 @@ function secure_system() {
     echo "install snd /bin/true" >>/etc/modprobe.d/uncommon-input.conf
     # Remove telnet
     apt-get -y --purge remove telnet nis ntpdate >/dev/null 2>&1
-
     # File permissions
     chown root:root /etc/grub.conf >/dev/null 2>&1
     chown -R root:root /etc/grub.d >/dev/null 2>&1
@@ -256,7 +250,7 @@ function secure_system() {
     chmod og-rwx /boot/grub2/grub.cfg >/dev/null 2>&1
     chown root:root /boot/grub/grub.cfg >/dev/null 2>&1
     chmod og-rwx /boot/grub/grub.cfg >/dev/null 2>&1
-    #chmod -R 0700 /home/* >/dev/null 2>&1
+    chmod 0700 /home/* >/dev/null 2>&1
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
     chmod -R 0600 /etc/cron.hourly
@@ -281,7 +275,9 @@ function secure_system() {
         msg_info "Locking root account"
         passwd -d root >/dev/null 2>&1
         passwd -l root >/dev/null 2>&1
-        #sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
+        if [[ "$disableRoot" = true ]]; then
+            sed -i '/^root:/s/\/bin\/bash/\/usr\/sbin\/nologin/g' /etc/passwd
+        fi
         msg_ok "Root account locked successfully"
     else
         msg_warn "Root account not locked"
@@ -397,7 +393,8 @@ You can use the following Options:
   [-u] [--allow-sshuser] => Specifies user(s) that are allowed to login via SSH [default=all]
   [-g] [--allow-sshgroup] => Specifies group(s) that are allowed to login via SSH [default=all]
   [-p] [--ssh-port] => Specifies the port SSH listens on. If not specified, random port is used
-  [-l] [--lock-root] => Disables the root account
+  [-l] [--lock-root] => Locks the root account
+  [-d] [--disable-root] => Completly disables the root account
   [-n] [--no-firewall] => Doesn't activate firewall, but rules are generated
   [-a] [--allow-port] => Allow port(s) allowed for incoming traffic (you can specify a protocol)
   [-s] [--strict-firewall] => Denies outgoing traffic, except for nescessary protocols
@@ -439,6 +436,9 @@ function get_Params() {
             ;;
         -c | --config)
             configFile="$2"
+            ;;
+        -d | --disable-root)
+            disableRoot=true
             ;;
         --with-aide)
             withAide=true
