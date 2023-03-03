@@ -250,7 +250,7 @@ function secure_system() {
     chmod og-rwx /boot/grub2/grub.cfg >/dev/null 2>&1
     chown root:root /boot/grub/grub.cfg >/dev/null 2>&1
     chmod og-rwx /boot/grub/grub.cfg >/dev/null 2>&1
-    #chmod 0700 /home/* >/dev/null 2>&1
+    chmod 0700 /home/* >/dev/null 2>&1
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
     chmod -R 0600 /etc/cron.hourly
@@ -338,7 +338,7 @@ function secure_firewall() {
 function secure_fail2ban() {
     msg_info "Setting up Fail2ban"
     getIni "START_F2B_SSH" "END_F2B_SSH"
-    printf "%s" "$output" | tee -a /etc/fail2ban/jail.d/ssh.local >/dev/null 2>&1
+    printf "%s" "$output" | tee /etc/fail2ban/jail.d/ssh.local >/dev/null 2>&1
     rm -f /etc/fail2ban/jail.d/defaults-debian.conf
     fail2ban-client start >/dev/null 2>&1
     fail2ban-client reload >/dev/null 2>&1
