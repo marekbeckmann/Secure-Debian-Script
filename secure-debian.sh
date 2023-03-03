@@ -250,7 +250,7 @@ function secure_system() {
     chmod og-rwx /boot/grub2/grub.cfg >/dev/null 2>&1
     chown root:root /boot/grub/grub.cfg >/dev/null 2>&1
     chmod og-rwx /boot/grub/grub.cfg >/dev/null 2>&1
-    chmod 0700 /home/* >/dev/null 2>&1
+    #chmod 0700 /home/* >/dev/null 2>&1
     chmod 0644 /etc/passwd
     chmod 0644 /etc/group
     chmod -R 0600 /etc/cron.hourly
